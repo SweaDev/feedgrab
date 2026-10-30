@@ -294,7 +294,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`, then `bun run build`.
   - Commit: `feat(llm): add env config, createModel with injected providers (T16)`
 
-- [ ] **T17 — DOM skeleton builder and LLM refine in detectFeeds**
+- [x] **T17 — DOM skeleton builder and LLM refine in detectFeeds**
   - Depends: T11, T14
   - Read: SPEC L65-68, L211; PLAN L298-301, L312-337
   - Files: `src/detect/skeleton.ts`, `src/detect/llm-refine.ts`, `src/detect/detect.ts`, `tests/unit/detect/skeleton.test.ts`, `tests/unit/detect/llm-refine.test.ts`
