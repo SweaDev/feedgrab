@@ -12,6 +12,7 @@ export type OverlayTheme = {
   zIndex?: number;
 };
 
+/** A theme with every value filled in. */
 export type ResolvedTheme = Required<Omit<OverlayTheme, 'colors'>> & {
   colors: Required<NonNullable<OverlayTheme['colors']>>;
 };

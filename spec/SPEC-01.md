@@ -134,18 +134,22 @@ type FeedItem = {
   - `'detach'`: removes the node from the DOM.
 - **Teardown**: `feed.dispose()` disconnects observers, cancels pending LLM requests, and clears caches. It does not undo removals unless `dispose({ restore: true })` is passed.
 
-## 10. Public API (sketch)
+## 10. Public API
 ```ts
-// detection
+// detection (feed-detector)
 detectFeeds(doc: Document, opts?: DetectOptions): Promise<FeedDescriptor[]>
-inspectFromElement(el: Element): FeedDescriptor
+inspectFromElement(el: Element, opts?: { minItems?: number }): FeedDescriptor
 detectFromSelector(doc: Document, sel: SelectorInput): FeedDescriptor
 validateSelector(doc: Document, sel: Selector): { valid: boolean; count: number; error?: string }
+matchSelector(doc: Document, sel: Selector, opts?: { root?: Element }): { elements: Element[]; boxes?: Box[] }
+registerXPathEngine(engine: (expr: string, contextNode: Node) => Node[]): void   // for DOMs without document.evaluate
 
 // overlay (feed-detector/overlay)
 openOverlay(doc: Document, proposals: FeedDescriptor[], opts?: OverlayOptions): Promise<SiteProfile>
+pickElement(doc: Document, opts?: { filter?; signal? }): Promise<Element>
 
 // profiles (consumer persists)
+createProfile(input: { url: string | URL; pathPattern?: string; feeds: FeedDescriptor[] }): SiteProfile
 matchProfile(url: string | URL, profiles: SiteProfile[]): SiteProfile | undefined
 serializeProfile(p: SiteProfile): string
 parseProfile(s: string): SiteProfile          // validated + migrated via `version`
@@ -153,33 +157,44 @@ parseProfile(s: string): SiteProfile          // validated + migrated via `versi
 // iteration & cleanup
 openFeed(doc: Document, profile: SiteProfile, opts?: FeedOptions): UnifiedFeed
 feed.ingest(input: Document | string, opts?: { url?: string }): FeedItem[]   // returns newly added items
-removeItem(item: FeedItem, opts?: { mode?: 'hide' | 'detach' }): { restore(): void }
-removeParts(item: FeedItem, opts?: { mode?: 'hide' | 'detach' }): { restore(): void }
+feed.dispose(opts?: { restore?: boolean }): void
+removeItem(item: FeedItem, opts?: { mode?: 'hide' | 'detach' }): { restore(): boolean }
+removeParts(item: FeedItem, opts?: { mode?: 'hide' | 'detach' }): { restore(): boolean }
 
 // server-side (feed-detector/server)
 parseHtml(html: string, url?: string): Document  // happy-dom; any other Document also works
+disposeDocument(doc: Document): void             // closes the happy-dom window
 
 // LLM (see §11)
-createModel(config: LlmConfig): LanguageModel
-createModelFromEnv(): LanguageModel
-createLlmProxy(send: (req: LlmRequest) => Promise<unknown>): LlmBackend
-handleLlmRequest(req: LlmRequest, model: LanguageModel): Promise<unknown>
+createLlmProxy(send: (req: LlmRequest, opts?: { signal?: AbortSignal }) => Promise<unknown>): LlmProxyFn   // feed-detector
+handleLlmRequest(req: unknown, model: LanguageModel, opts?: { signal?: AbortSignal }): Promise<LlmResponse> // feed-detector/llm
+createModel(config: LlmConfig, providers: ProviderFactories): LanguageModel                          // feed-detector/llm
+createModelFromEnv(providers: ProviderFactories, env?: Record<string, string | undefined>): LanguageModel
+readEnvConfig(env?): LlmConfig | null
+allProviders: ProviderFactories                                                                      // feed-detector/llm/providers
 
 type FeedDescriptor = {
-  id: string; container: Selector; item: Selector;
-  exclude: Rule[]; include: Rule[];
+  id: string; container: Selector; item: Selector;   // item is evaluated relative to each container
+  exclude: Rule[]; include: Rule[];                  // include: selector rules only
   source: 'heuristic' | 'llm' | 'inspect' | 'manual'; confidence: number; confirmed: boolean;
 }
-type SiteProfile = { version: number; hostname: string; pathPattern: string; feeds: FeedDescriptor[] }
+type SiteProfile = { version: number; hostname: string; pathPattern: string; feeds: FeedDescriptor[]; updatedAt?: string }
 type Selector = { type: 'css' | 'xpath'; value: string }
-type Rule = { kind: 'selector'; selector: Selector; scope: 'item' | 'part' } | { kind: 'llm-text'; criteria: string }
-type LlmBackend = LanguageModel | ((req: LlmRequest) => Promise<unknown>) // fn form = proxy (extension background or headless host)
+type SelectorInput = { container?: Selector; item?: Selector }   // at least one
+type Rule =
+  | { kind: 'selector'; selector: Selector; scope: 'item' | 'part'; id?: string; origin?: 'user' | 'llm' }
+  | { kind: 'llm-text'; criteria: string; id?: string; origin?: 'user' | 'llm' }   // id auto-filled as r_<hash>
+type FeedItem = { /* §9.3 */ connected: boolean; rescuedBy?: { ruleId: string; origin: 'builtin' | 'user' | 'llm' } }
+type FeedEvents = 'item:added' | 'item:updated' | 'item:removed' | 'feed:lost' | 'feed:error' /* { feedId?, error } */
+type LlmBackend = LanguageModel | LlmProxyFn // fn form = proxy (extension background or headless host)
 ```
 Entry points:
-- `feed-detector`: the core, for every mode.
+- `feed-detector`: the core, for every mode (includes `createLlmProxy`; a `LanguageModel` backend lazily loads the AI SDK).
 - `feed-detector/overlay`: the picker/overlay.
-- `feed-detector/server`: `parseHtml`.
-- `feed-detector/browser`: a prebuilt IIFE bundle that exposes a `FeedDetector` global, for page injection in headless browsers.
+- `feed-detector/server`: `parseHtml`, `disposeDocument`.
+- `feed-detector/llm`: `handleLlmRequest`, `createModel`, `createModelFromEnv`, `readEnvConfig` (host side: extension background, Node/Bun).
+- `feed-detector/llm/providers`: `allProviders`, the four provider factories (optional peer dependencies).
+- `feed-detector/browser`: a prebuilt IIFE bundle that exposes a `FeedDetector` global, for page injection in headless browsers. It accepts only the proxy form of `LlmBackend`.
 
 ## 11. LLM providers & configuration
 - Built on the **Vercel AI SDK** (`ai`, Apache-2.0, actively maintained). It gives one interface for every provider plus structured output (`generateObject` + zod). The core only depends on the `LanguageModel` type, and provider packages are optional peer dependencies.

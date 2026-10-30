@@ -642,7 +642,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: if `actionlint` is available, `actionlint` passes; otherwise the YAML parses (`bun -e "require('yaml')"`, or `python3 -c 'import yaml…'` if available).
   - Commit: `ci: add github actions workflow for checks, e2e and extension builds (T38)`
 
-- [ ] **T39 — README, API docs, and the SPEC §10 sync (last task)**
+- [x] **T39 — README, API docs, and the SPEC §10 sync (last task)**
   - Depends: all previous tasks
   - Read: SPEC L137-182; PLAN L42-79, L736-758
   - Files: `README.md`, `spec/SPEC-01.md` (§10 only), `src/**/*.ts` (JSDoc gaps)

@@ -3,6 +3,7 @@ import { z } from 'zod/mini';
 const index = () => z.int().check(z.gte(0));
 const confidence = () => z.number().check(z.gte(0), z.lte(1));
 
+/** `detect` task: candidate skeleton for LLM refinement. */
 export const DetectRequestSchema = z.object({
   task: z.literal('detect'),
   skeleton: z.string(),
@@ -16,17 +17,20 @@ export const DetectRequestSchema = z.object({
   ),
 });
 
+/** `classify` task: item texts to judge against exclusion criteria. */
 export const ClassifyRequestSchema = z.object({
   task: z.literal('classify'),
   criteria: z.array(z.string().check(z.minLength(1))).check(z.minLength(1)),
   items: z.array(z.object({ id: z.string(), text: z.string() })),
 });
 
+/** Any LLM request (discriminated on `task`). */
 export const LlmRequestSchema = z.discriminatedUnion('task', [
   DetectRequestSchema,
   ClassifyRequestSchema,
 ]);
 
+/** Response to `detect`: refined feeds with optional exclusion selectors. */
 export const DetectResponseSchema = z.object({
   feeds: z.array(
     z.object({
@@ -39,6 +43,7 @@ export const DetectResponseSchema = z.object({
   ),
 });
 
+/** Response to `classify`: one result per item id. */
 export const ClassifyResponseSchema = z.object({
   results: z.array(
     z.object({
@@ -50,12 +55,19 @@ export const ClassifyResponseSchema = z.object({
   ),
 });
 
+/** Request of the `detect` task. */
 export type DetectRequest = z.infer<typeof DetectRequestSchema>;
+/** Request of the `classify` task. */
 export type ClassifyRequest = z.infer<typeof ClassifyRequestSchema>;
+/** A request sent to an LLM backend (`createLlmProxy` → `handleLlmRequest`). */
 export type LlmRequest = z.infer<typeof LlmRequestSchema>;
+/** Validated `detect` response. */
 export type DetectResponse = z.infer<typeof DetectResponseSchema>;
+/** Validated `classify` response. */
 export type ClassifyResponse = z.infer<typeof ClassifyResponseSchema>;
+/** Validated response of either task. */
 export type LlmResponse = DetectResponse | ClassifyResponse;
+/** LLM task names. */
 export type LlmTask = LlmRequest['task'];
 
 /** Response type for a task. */
