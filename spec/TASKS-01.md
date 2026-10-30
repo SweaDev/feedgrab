@@ -142,7 +142,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(selector): add css/xpath evaluation and selector validation (T07)`
 
-- [ ] **T08 — Stable classes and structural signatures**
+- [x] **T08 — Stable classes and structural signatures**
   - Depends: T04
   - Read: SPEC L57; PLAN L246-264
   - Files: `src/signature/classes.ts`, `src/signature/signature.ts`, `tests/unit/signature/*.test.ts`
