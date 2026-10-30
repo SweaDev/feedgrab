@@ -473,7 +473,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
 
 ## Phase H — Overlay
 
-- [ ] **T27 — Overlay host, theme, styles, highlighter, and picker**
+- [x] **T27 — Overlay host, theme, styles, highlighter, and picker**
   - Depends: T07
   - Read: SPEC L21, L71-76; PLAN L72-75, L129-132, L531-549
   - Files: `src/overlay/h.ts`, `src/overlay/theme.ts`, `src/overlay/styles.ts`, `src/overlay/host.ts`, `src/overlay/highlighter.ts`, `src/overlay/picker.ts`, `tests/unit/overlay/theme.test.ts`, `tests/unit/overlay/picker.test.ts`
