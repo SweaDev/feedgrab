@@ -171,7 +171,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
 
 ## Phase C — Detection
 
-- [ ] **T10 — Heuristic candidate discovery and scoring**
+- [x] **T10 — Heuristic candidate discovery and scoring**
   - Depends: T08, T06
   - Read: SPEC L55-63; PLAN L265-292
   - Files: `src/detect/candidate.ts`, `src/detect/score.ts`, `src/detect/heuristic.ts`, `tests/unit/detect/heuristic.test.ts`
