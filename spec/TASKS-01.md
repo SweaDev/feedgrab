@@ -586,7 +586,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run build && bun run --filter feed-detector-example-extension build` produces `examples/extension/.output/chrome-mv3/manifest.json`. `bun run check` passes.
   - Commit: `feat(example): add wxt example extension with background llm proxy and content script (T33)`
 
-- [ ] **T34 — Example popup, options page, overlay flow, and Firefox build**
+- [x] **T34 — Example popup, options page, overlay flow, and Firefox build**
   - Depends: T33
   - Read: PLAN L703-716
   - Files: `examples/extension/entrypoints/popup/index.html`, `examples/extension/entrypoints/popup/main.ts`, `examples/extension/entrypoints/options/index.html`, `examples/extension/entrypoints/options/main.ts`, `examples/extension/README.md`
