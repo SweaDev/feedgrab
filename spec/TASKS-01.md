@@ -573,7 +573,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
 
 ## Phase J — Example extension
 
-- [ ] **T33 — WXT example scaffold, message/storage libs, background proxy, content script**
+- [x] **T33 — WXT example scaffold, message/storage libs, background proxy, content script**
   - Depends: T30
   - Read: SPEC L203-210; PLAN L671-702
   - Files: `examples/extension/package.json`, `examples/extension/wxt.config.ts`, `examples/extension/tsconfig.json`, `examples/extension/lib/messages.ts`, `examples/extension/lib/storage.ts`, `examples/extension/entrypoints/background.ts`, `examples/extension/entrypoints/content.ts`, root `biome.json` and `tsconfig.json` (exclude the generated dirs)

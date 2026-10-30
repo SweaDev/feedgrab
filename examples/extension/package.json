@@ -1,0 +1,23 @@
+{
+  "name": "feed-detector-example-extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^4",
+    "@ai-sdk/openai": "^4",
+    "@ai-sdk/openai-compatible": "^3",
+    "@openrouter/ai-sdk-provider": "^3",
+    "feed-detector": "workspace:*"
+  },
+  "devDependencies": {
+    "wxt": "^0.21.5"
+  }
+}
