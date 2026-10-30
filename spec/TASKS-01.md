@@ -45,7 +45,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run lint && bun run typecheck && bun run test` all pass. `git status` shows the spec files and the scaffold.
   - Commit: `chore: scaffold project tooling and spec docs (T01)`
 
-- [ ] **T02 — Build script, entry stubs, and the exports map**
+- [x] **T02 — Build script, entry stubs, and the exports map**
   - Depends: T01
   - Read: PLAN L133-144, L179-192
   - Files: `scripts/build.ts`, `scripts/check-size.ts`, `tsconfig.build.json`, `package.json` (exports/files/sideEffects), stubs `src/overlay/index.ts`, `src/server.ts`, `src/llm/index.ts`, `src/llm/providers.ts`, `src/llm/run-model.ts`, `src/llm/run-model.stub.ts`, `src/browser.ts`
