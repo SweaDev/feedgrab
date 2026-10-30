@@ -145,7 +145,7 @@ Each subpath has `{ "types": "./dist/types/<path>.d.ts", "import": "./dist/<path
 ## 4. Tooling & build
 
 ### 4.1 Dependencies
-- **dependencies**: `zod` (v4, or the latest major that works with `ai`), `ai` (latest stable major), `@medv/finder`, `xpath`.
+- **dependencies**: `zod` (v4; schemas use the tree-shakable `zod/mini` API so the IIFE bundle stays under 120 KB), `ai` (latest stable major), `xpath`.
 - **peerDependencies** (all marked optional in `peerDependenciesMeta`): `happy-dom`, `@ai-sdk/openai-compatible`, `@ai-sdk/openai`, `@ai-sdk/google`, `@openrouter/ai-sdk-provider`.
 - **devDependencies**: `typescript`, `@biomejs/biome`, `@types/bun`, `happy-dom`, the four provider packages, `@playwright/test`.
 - The example extension has its own `package.json` with `wxt` and `"feed-detector": "workspace:*"`. The root `package.json` sets `"workspaces": ["examples/*"]`.
@@ -204,7 +204,8 @@ Each subpath has `{ "types": "./dist/types/<path>.d.ts", "import": "./dist/<path
 - `errors.ts`: `class FeedDetectorError extends Error { code: ErrorCode; details?: unknown }`. The `ErrorCode` union:
   - `INVALID_SELECTOR`, `NO_MATCH`, `NO_REPEATING_ANCESTOR`, `INVALID_PROFILE`, `UNSUPPORTED_PROFILE_VERSION`;
   - `LLM_UNAVAILABLE`, `LLM_BAD_REQUEST`, `LLM_INVALID_RESPONSE`, `LLM_MODEL_UNSUPPORTED_IN_BUNDLE`, `LLM_CONFIG`, `LLM_PROVIDER_MISSING`;
-  - `OVERLAY_CANCELLED`, `OVERLAY_NO_LAYOUT`, `DISPOSED`, `XPATH_UNSUPPORTED`.
+  - `OVERLAY_CANCELLED`, `OVERLAY_NO_LAYOUT`, `DISPOSED`, `XPATH_UNSUPPORTED`;
+  - `LISTENER_ERROR` (a consumer's event listener threw; surfaced as `feed:error`).
 
 ### 5.1 Environment utilities (`src/env/*`)
 - `dom.ts`:
@@ -232,9 +233,9 @@ Each subpath has `{ "types": "./dist/types/<path>.d.ts", "import": "./dist/<path
 ### 5.3 Selector generation (`src/selector/generate.ts`)
 - `containerSelector(el): Selector`:
   1. If `el.id` is stable (§5.4 `isStableToken`) and unique in the document → `#id`.
-  2. Otherwise call `finder(el, { root: el.ownerDocument.body, className: isStableClass, idName: isStableToken, tagName: () => true, attr: (name) => STABLE_ATTRS.has(name), seedMinLength: 1, optimizedMinLength: 2 })`, with `STABLE_ATTRS = {'role','data-testid','data-test','aria-label','itemtype','itemprop'}`.
-  3. **Always** pass `root`, because finder otherwise reads the global `document`.
-  4. If finder throws, fall back to an `nth-child` path (`buildPathSelector`).
+  2. Otherwise run a local, deterministic finder-style search: try the simple selectors of `el` (stable `#id`, each stable class, `STABLE_ATTRS` attributes with `STABLE_ATTRS = ['role','data-testid','data-test','aria-label','itemtype','itemprop']`, tag + classes, tag) for uniqueness in the document. Then extend upwards through ancestors (`ancestor descendant`, then `parent > child` levels distinguished among siblings).
+  3. No globals are read (the external finder library was dropped: it needs `document`, `Node` and `CSS` globals, which parsed documents don't have).
+  4. If no unique selector is found, fall back to an `nth-child` path (`buildPathSelector`).
 - `itemSelector(container, items): Selector`, with `tag` = the shared lowercase tag (the dominant tag if mixed) and `C` = the stable classes shared by **all** items:
   - `S1 = ':scope > ' + tag`.
   - `S2 = S1 + C.map(c => '.' + cssEscape(c)).join('')`, the classes sorted.
@@ -279,7 +280,7 @@ Each subpath has `{ "types": "./dist/types/<path>.d.ts", "import": "./dist/<path
      - `media` = the fraction of items with `img, picture, video, [style*="background-image"]`
      - `shape` = the fraction of items whose `sigL2` equals the mode
      - `depth` = `min(1, medianDescendantCount / 8)`
-     - `navPenalty` = 1 if `P` or an ancestor is `nav, header, footer, aside, [role=navigation], [role=menu], [role=menubar], [role=tablist], select, datalist`; else 0.5 if the median item text is < 25 characters and each item holds a single link only; else 0
+     - `navPenalty` = 1 if `P` or an ancestor is `nav, header, footer, [role=navigation], [role=menu], [role=menubar], [role=tablist], select, datalist`; else 0.5 if the median item text is < 25 characters and each item holds a single link only; else 0
      - `area` (only if `hasLayout`) = the summed item rect area / viewport area, capped at 1
   5. Score in `score.ts`, with the weights kept as exported constants:
      - `score = 0.20*count + 0.10*coverage + 0.20*text + 0.15*links + 0.10*media + 0.10*shape + 0.15*depth`

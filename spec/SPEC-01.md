@@ -197,7 +197,7 @@ Entry points:
 - `feed-detector/browser`: a prebuilt IIFE bundle that exposes a `FeedDetector` global, for page injection in headless browsers. It accepts only the proxy form of `LlmBackend`.
 
 ## 11. LLM providers & configuration
-- Built on the **Vercel AI SDK** (`ai`, Apache-2.0, actively maintained). It gives one interface for every provider plus structured output (`generateObject` + zod). The core only depends on the `LanguageModel` type, and provider packages are optional peer dependencies.
+- Built on the **Vercel AI SDK** (`ai`, Apache-2.0, actively maintained). It gives one interface for every provider plus structured output (`generateText` + `Output.object` with a zod schema). The core only depends on the `LanguageModel` type, and provider packages are optional peer dependencies.
   | Provider | Package |
   |---|---|
   | Ollama (local) | `@ai-sdk/openai-compatible` → `<base>/v1` |
@@ -229,8 +229,8 @@ Entry points:
 | Need | Choice | Why |
 |---|---|---|
 | LLM abstraction + structured output | `ai` + provider packages (optional peers) | One API for all four providers |
-| Schema validation | `zod` | Required by AI SDK structured output, also validates profiles |
-| Unique CSS selector generation | `@medv/finder` | Tiny, maintained, robust short selectors |
+| Schema validation | `zod` (v4, via the tree-shakable `zod/mini` API) | Required by AI SDK structured output, also validates profiles. `zod/mini` keeps the browser bundle small |
+| Unique CSS selector generation | In-house (`selector/generate.ts`) | Deterministic in every DOM. the off-the-shelf finder library needs the globals `document`, `Node` and `CSS`, so it can't run on parsed documents and would break Bun/browser parity |
 | DOM for server-side + tests | `happy-dom` (optional peer, used by `parseHtml`) | Fast, maintained, supports `MutationObserver`. Bun's recommended test DOM |
 | XPath fallback | `xpath` (optional), only when the DOM implementation lacks `document.evaluate` | Avoids the dependency on real browsers |
 | Headless-browser tests | Playwright (dev) | Runs the injected `feed-detector/browser` bundle on Chromium and Firefox |

@@ -663,7 +663,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
 
 > Note: added while working T09. Some implementation decisions (logged in `spec/NOTES-01.md`) make SPEC-01/PLAN-01 text outside §10 inaccurate. Those files cannot be edited before T39 without shifting the cited line ranges, so the sync happens here, after T39.
 
-- [ ] **T40 — Sync SPEC/PLAN with the implementation deviations logged in NOTES-01**
+- [x] **T40 — Sync SPEC/PLAN with the implementation deviations logged in NOTES-01**
   - Depends: T39
   - Read: `spec/NOTES-01.md`
   - Files: `spec/SPEC-01.md`, `spec/PLAN-01.md`
