@@ -538,7 +538,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check && bun run build && bun run scripts/check-size.ts`. Also `grep -q LLM_MODEL_UNSUPPORTED_IN_BUNDLE dist/browser.global.js`.
   - Commit: `feat(browser): add iife bundle exposing FeedDetector global (T30)`
 
-- [ ] **T31 — Playwright setup, parity scenarios, and live-scroll E2E**
+- [x] **T31 — Playwright setup, parity scenarios, and live-scroll E2E**
   - Depends: T30
   - Read: SPEC L239-244; PLAN L634-648
   - Files: `playwright.config.ts`, `tests/e2e/serve.ts`, `tests/e2e/global-setup.ts`, `tests/scenarios/index.ts`, `tests/scenarios/run.ts`, `tests/scenarios/build.ts`, `tests/e2e/parity.spec.ts`, `tests/e2e/live-scroll.spec.ts`, `tests/unit/scenarios.test.ts`
