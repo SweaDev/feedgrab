@@ -277,7 +277,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(llm): add structured output adapter, prompts and handleLlmRequest (T15)`
 
-- [ ] **T16 — LLM config from env, createModel (DI), and the providers entry**
+- [x] **T16 — LLM config from env, createModel (DI), and the providers entry**
   - Depends: T15
   - Read: SPEC L192-202; PLAN L53-60, L490-503
   - Files: `src/llm/config.ts`, `src/llm/models.ts`, `src/llm/providers.ts`, `src/llm/index.ts`, `.env.example`, `tests/unit/llm/config.test.ts`
