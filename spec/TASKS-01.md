@@ -621,7 +621,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run test:live` skips cleanly when `FD_LLM_MODEL` is unset (and passes if it is set). `bun run smoke:node` prints counts and exits 0.
   - Commit: `test: add opt-in live llm tests and node smoke script (T36)`
 
-- [ ] **T37 — Performance and determinism tests**
+- [x] **T37 — Performance and determinism tests**
   - Depends: T23, T11
   - Read: SPEC L237-238; PLAN L659-662
   - Files: `tests/unit/perf/perf.test.ts`, `tests/unit/perf/determinism.test.ts`
