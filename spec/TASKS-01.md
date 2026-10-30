@@ -490,7 +490,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(overlay): add shadow host, theming, highlighter and element picker (T27)`
 
-- [ ] **T28 — Overlay state reducer**
+- [x] **T28 — Overlay state reducer**
   - Depends: T12
   - Read: SPEC L74-75; PLAN L550-552
   - Files: `src/overlay/state.ts`, `tests/unit/overlay/state.test.ts`
