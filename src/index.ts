@@ -2,6 +2,8 @@ export { detectFeeds } from './detect/detect';
 export { detectFromSelector, inspectFromElement } from './detect/inspect';
 export type { ErrorCode } from './errors';
 export { FeedDetectorError } from './errors';
+export type { BuiltinRule } from './exclude/builtin';
+export { BUILTIN_RULES } from './exclude/builtin';
 export type * from './llm/contract';
 export { createLlmProxy } from './llm/proxy';
 export { matchProfile } from './profile/match';

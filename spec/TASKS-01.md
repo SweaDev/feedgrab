@@ -316,7 +316,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
 
 ## Phase F — Exclusions
 
-- [ ] **T18 — Built-in rules, specificity, and selector rule matching**
+- [x] **T18 — Built-in rules, specificity, and selector rule matching**
   - Depends: T07, T12
   - Read: SPEC L84-90, L94; PLAN L67-70, L338-355
   - Files: `src/exclude/builtin.ts`, `src/exclude/specificity.ts`, `src/exclude/rules.ts`, `src/index.ts` (export `BUILTIN_RULES`), `tests/unit/exclude/rules.test.ts`
