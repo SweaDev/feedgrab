@@ -1,0 +1,63 @@
+{
+  "name": "feed-detector",
+  "version": "0.1.0",
+  "description": "Detect, describe and iterate content feeds in web pages (extension, headless and server-side).",
+  "type": "module",
+  "license": "MIT",
+  "author": "Fayaz Ahmed",
+  "workspaces": [
+    "examples/*"
+  ],
+  "scripts": {
+    "build": "bun run scripts/build.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "test": "bun test tests/unit",
+    "test:e2e": "bun run build && playwright test",
+    "test:live": "bun test tests/live",
+    "check": "bun run lint && bun run typecheck && bun run test",
+    "check:all": "bun run check && bun run build && bun run test:e2e && bun run --filter feed-detector-example-extension build"
+  },
+  "dependencies": {
+    "@medv/finder": "^4.0.2",
+    "ai": "^7.0.157",
+    "xpath": "^0.0.36",
+    "zod": "^4.6.7"
+  },
+  "peerDependencies": {
+    "@ai-sdk/google": ">=4",
+    "@ai-sdk/openai": ">=4",
+    "@ai-sdk/openai-compatible": ">=3",
+    "@openrouter/ai-sdk-provider": ">=3",
+    "happy-dom": ">=21"
+  },
+  "peerDependenciesMeta": {
+    "@ai-sdk/google": {
+      "optional": true
+    },
+    "@ai-sdk/openai": {
+      "optional": true
+    },
+    "@ai-sdk/openai-compatible": {
+      "optional": true
+    },
+    "@openrouter/ai-sdk-provider": {
+      "optional": true
+    },
+    "happy-dom": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@ai-sdk/google": "^4.0.108",
+    "@ai-sdk/openai": "^4.0.105",
+    "@ai-sdk/openai-compatible": "^3.0.81",
+    "@biomejs/biome": "^2.6.4",
+    "@openrouter/ai-sdk-provider": "^3.1.0",
+    "@playwright/test": "^1.64.1",
+    "@types/bun": "^1.4.4",
+    "happy-dom": "^21.0.4",
+    "typescript": "^7.0.2"
+  }
+}
