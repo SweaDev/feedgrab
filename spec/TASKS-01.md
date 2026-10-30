@@ -224,7 +224,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(profile): add site profile schema, serialization and migrations (T12)`
 
-- [ ] **T13 — matchProfile with hostname and path-pattern specificity**
+- [x] **T13 — matchProfile with hostname and path-pattern specificity**
   - Depends: T12
   - Read: SPEC L45, L50; PLAN L516-530
   - Files: `src/profile/match.ts`, `src/index.ts`, `tests/unit/profile/match.test.ts`
