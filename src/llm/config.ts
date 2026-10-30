@@ -1,11 +1,11 @@
-import { z } from 'zod';
+import { z } from 'zod/mini';
 import { FeedDetectorError } from '../errors';
 
 export const LlmConfigSchema = z.object({
   provider: z.enum(['ollama', 'openai', 'openrouter', 'gemini']),
-  model: z.string().min(1),
-  baseURL: z.string().url().optional(),
-  apiKey: z.string().min(1).optional(),
+  model: z.string().check(z.minLength(1)),
+  baseURL: z.optional(z.url()),
+  apiKey: z.optional(z.string().check(z.minLength(1))),
 });
 
 /** Provider + model settings (from `.env`, a settings page, …). */

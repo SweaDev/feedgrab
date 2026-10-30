@@ -522,7 +522,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
 
 ## Phase I — Browser bundle & E2E
 
-- [ ] **T30 — Browser IIFE bundle and public API completeness**
+- [x] **T30 — Browser IIFE bundle and public API completeness**
   - Depends: T29, T26, T25, T24, T23, T17, T13, T16
   - Read: SPEC L33, L178-182; PLAN L77, L179-192, L579-591
   - Files: `src/browser.ts`, `src/index.ts`, `scripts/build.ts` (if needed), `tests/unit/api.test.ts`

@@ -1,21 +1,24 @@
-import { z } from 'zod';
+import { z } from 'zod/mini';
+
+const index = () => z.int().check(z.gte(0));
+const confidence = () => z.number().check(z.gte(0), z.lte(1));
 
 export const DetectRequestSchema = z.object({
   task: z.literal('detect'),
   skeleton: z.string(),
   candidates: z.array(
     z.object({
-      index: z.number().int().min(0),
+      index: index(),
       container: z.string(),
       item: z.string(),
-      count: z.number().int().min(0),
+      count: index(),
     }),
   ),
 });
 
 export const ClassifyRequestSchema = z.object({
   task: z.literal('classify'),
-  criteria: z.array(z.string().min(1)).min(1),
+  criteria: z.array(z.string().check(z.minLength(1))).check(z.minLength(1)),
   items: z.array(z.object({ id: z.string(), text: z.string() })),
 });
 
@@ -27,11 +30,11 @@ export const LlmRequestSchema = z.discriminatedUnion('task', [
 export const DetectResponseSchema = z.object({
   feeds: z.array(
     z.object({
-      candidateIndex: z.number().int().min(0).optional(),
+      candidateIndex: z.optional(index()),
       containerSelector: z.string(),
       itemSelector: z.string(),
       exclusions: z.array(z.object({ selector: z.string(), scope: z.enum(['item', 'part']) })),
-      confidence: z.number().min(0).max(1),
+      confidence: confidence(),
     }),
   ),
 });
@@ -41,8 +44,8 @@ export const ClassifyResponseSchema = z.object({
     z.object({
       id: z.string(),
       exclude: z.boolean(),
-      criteriaIndex: z.number().int().min(0).optional(),
-      confidence: z.number().min(0).max(1),
+      criteriaIndex: z.optional(index()),
+      confidence: confidence(),
     }),
   ),
 });
@@ -62,8 +65,8 @@ export type ResponseFor<T extends LlmTask> = T extends 'detect' ? DetectResponse
 export type LlmProxyFn = (req: LlmRequest, opts?: { signal?: AbortSignal }) => Promise<unknown>;
 
 /** Response schema for a task. */
-export function responseSchemaFor<T extends LlmTask>(task: T): z.ZodType<ResponseFor<T>> {
+export function responseSchemaFor<T extends LlmTask>(task: T): z.ZodMiniType<ResponseFor<T>> {
   return (task === 'detect'
     ? DetectResponseSchema
-    : ClassifyResponseSchema) as unknown as z.ZodType<ResponseFor<T>>;
+    : ClassifyResponseSchema) as unknown as z.ZodMiniType<ResponseFor<T>>;
 }
