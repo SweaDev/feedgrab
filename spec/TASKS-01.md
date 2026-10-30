@@ -366,7 +366,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
 
 ## Phase G — Unified feed
 
-- [ ] **T21 — Feed primitives (item id, emitter, async queue, registry, FeedItemImpl)**
+- [x] **T21 — Feed primitives (item id, emitter, async queue, registry, FeedItemImpl)**
   - Depends: T04, T03
   - Read: SPEC L103, L112; PLAN L71, L390-405
   - Files: `src/feed/item-id.ts`, `src/feed/emitter.ts`, `src/feed/async-queue.ts`, `src/feed/registry.ts`, `src/feed/feed-item.ts`, `tests/unit/feed/primitives.test.ts`

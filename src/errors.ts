@@ -14,7 +14,8 @@ export type ErrorCode =
   | 'OVERLAY_CANCELLED'
   | 'OVERLAY_NO_LAYOUT'
   | 'DISPOSED'
-  | 'XPATH_UNSUPPORTED';
+  | 'XPATH_UNSUPPORTED'
+  | 'LISTENER_ERROR';
 
 /**
  * The only error type thrown by public APIs.
