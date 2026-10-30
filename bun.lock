@@ -4,7 +4,6 @@
   "workspaces": {
     "": {
       "dependencies": {
-        "@medv/finder": "^4.0.2",
         "ai": "^7.0.157",
         "xpath": "^0.0.36",
         "zod": "^4.6.7",
@@ -20,6 +19,20 @@
         "happy-dom": "^21.0.4",
         "typescript": "^7.0.2",
       },
+      "peerDependencies": {
+        "@ai-sdk/google": ">=4",
+        "@ai-sdk/openai": ">=4",
+        "@ai-sdk/openai-compatible": ">=3",
+        "@openrouter/ai-sdk-provider": ">=3",
+        "happy-dom": ">=21",
+      },
+      "optionalPeers": [
+        "@ai-sdk/google",
+        "@ai-sdk/openai",
+        "@ai-sdk/openai-compatible",
+        "@openrouter/ai-sdk-provider",
+        "happy-dom",
+      ],
     },
   },
   "packages": {
@@ -56,8 +69,6 @@
     "@biomejs/cli-win32-arm64": ["@biomejs/cli-win32-arm64@2.6.4", "", { "os": "win32", "cpu": "arm64" }, "sha512-eCsqt8Ma3eVap+oyJCDnJZH60SIU464B66n3y38EUTJdM1T/HfZol1FJC9vb+sHToX0ix8XzqPcwJnOzyAJz0g=="],
 
     "@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.6.4", "", { "os": "win32", "cpu": "x64" }, "sha512-pYsMy5AThiHFOZAsngg8qN4PurM6nInKBhVX7sbj3eNpRQqo1Hb0MgCwPL7VqVMrmcEEMj9Ks3qbkallR65e8g=="],
-
-    "@medv/finder": ["@medv/finder@4.0.2", "", {}, "sha512-RraNY9SCcx4KZV0Dh6BEW6XEW2swkqYca74pkFFRw6hHItSHiy+O/xMnpbofjYbzXj0tSpBGthUF1hHTsr3vIQ=="],
 
     "@openrouter/ai-sdk-provider": ["@openrouter/ai-sdk-provider@3.1.0", "", { "peerDependencies": { "ai": "^7.0.0", "zod": "^3.25.76 || ^4.1.8" } }, "sha512-BQy1TA9fKrh47s9ivsO6FY5QimN7GUF0i8Qon3pkxQclEgShso0dClpcWn8OIyPLEZZPFaFKgI8TW4S/O0p0Dw=="],
 
