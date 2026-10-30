@@ -5,6 +5,7 @@ import type { FeedDescriptor, Rule, Selector, SiteProfile } from '../types';
 /** A proposal being edited in the overlay. */
 export type DraftFeed = FeedDescriptor & { accepted: boolean };
 
+/** What a click in the page currently means. */
 export type OverlayMode = 'idle' | 'pick-container' | 'pick-item' | 'pick-exclude' | 'pick-include';
 
 /** Overlay editing state. */
@@ -15,6 +16,7 @@ export type OverlayState = {
   mode: OverlayMode;
 };
 
+/** Which rule list of a descriptor. */
 export type RuleList = 'exclude' | 'include';
 
 /** Reducer actions. */
