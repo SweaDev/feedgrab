@@ -50,6 +50,7 @@
     "test:e2e": "bun run build && bun run tests/scenarios/build.ts && bun test tests/unit/scenarios.test.ts && playwright test",
     "test:e2e:ext": "bun run build && playwright test --project extension",
     "test:live": "bun test tests/live",
+    "smoke:node": "bun run build && node scripts/node-smoke.mjs",
     "check": "bun run lint && bun run typecheck && bun run test",
     "check:all": "bun run check && bun run build && bun run test:e2e && bun run --filter feed-detector-example-extension build"
   },
