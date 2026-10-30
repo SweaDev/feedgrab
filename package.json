@@ -47,7 +47,7 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "test": "bun test tests/unit",
-    "test:e2e": "bun run build && playwright test",
+    "test:e2e": "bun run build && bun run tests/scenarios/build.ts && bun test tests/unit/scenarios.test.ts && playwright test",
     "test:live": "bun test tests/live",
     "check": "bun run lint && bun run typecheck && bun run test",
     "check:all": "bun run check && bun run build && bun run test:e2e && bun run --filter feed-detector-example-extension build"
