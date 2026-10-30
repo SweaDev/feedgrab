@@ -206,7 +206,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
 
 ## Phase D — Profiles
 
-- [ ] **T12 — Profile schema, normalization, serialize/parse, and migrations**
+- [x] **T12 — Profile schema, normalization, serialize/parse, and migrations**
   - Depends: T03, T04
   - Read: SPEC L45, L148-151, L173-175; PLAN L47-52, L350, L504-515
   - Files: `src/profile/schema.ts`, `src/profile/normalize.ts`, `src/profile/migrate.ts`, `src/profile/profile.ts`, `src/index.ts`, `tests/unit/profile/profile.test.ts`
