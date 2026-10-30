@@ -7,7 +7,7 @@ import {
   Output,
   TypeValidationError,
 } from 'ai';
-import type { z } from 'zod';
+import type { z } from 'zod/mini';
 import { FeedDetectorError, toFeedDetectorError } from '../errors';
 
 function isSchemaFailure(e: unknown): boolean {
@@ -31,7 +31,7 @@ function errorText(e: unknown): string {
  */
 export async function generateStructured<T>(args: {
   model: LanguageModel;
-  schema: z.ZodType<T>;
+  schema: z.ZodMiniType<T>;
   system: string;
   prompt: string;
   signal?: AbortSignal;
