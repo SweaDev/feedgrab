@@ -260,7 +260,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(llm): add request/response contracts, proxy and backend resolution (T14)`
 
-- [ ] **T15 — Structured-output adapter, prompts, handleLlmRequest, and the llm entry**
+- [x] **T15 — Structured-output adapter, prompts, handleLlmRequest, and the llm entry**
   - Depends: T14
   - Read: SPEC L184-191; PLAN L478-489, L617-626 (mock-llm part)
   - Files: `src/llm/structured.ts`, `src/llm/prompts.ts`, `src/llm/run-model.ts`, `src/llm/index.ts`, `tests/helpers/mock-llm.ts`, `tests/unit/llm/handle.test.ts`
