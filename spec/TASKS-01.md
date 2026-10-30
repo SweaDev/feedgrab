@@ -74,7 +74,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(types): add public types and FeedDetectorError (T03)`
 
-- [ ] **T04 — Environment utilities (dom, hash, text, timers)**
+- [x] **T04 — Environment utilities (dom, hash, text, timers)**
   - Depends: T03
   - Read: PLAN L33-41, L64-66, L209-221
   - Files: `src/env/dom.ts`, `src/env/hash.ts`, `src/env/text.ts`, `src/env/timers.ts`, `tests/unit/env/*.test.ts`
