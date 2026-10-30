@@ -5,13 +5,8 @@ import type { ExclusionMatch, FeedItem, ItemStatus, PartMatch, RuleRef } from '.
 /** Key of the internal state on `FeedItemImpl`. */
 export const INTERNAL = Symbol('fd.internal');
 
-/** A removal handle as recorded on an item. */
-export type RecordedHandle = { restore(): boolean };
-
 export type ItemInternal = {
   docSeq: number;
-  /** Removal handles keyed by `<kind>:<mode>` (kind = item | part). */
-  handles: Map<string, RecordedHandle>;
   evaluation?: Evaluation;
   textCache?: { el: Element; text: string };
   llmKey?: string;
@@ -41,7 +36,7 @@ export class FeedItemImpl implements FeedItem {
     this.feedId = init.feedId;
     this.element = init.element;
     if (init.sourceUrl !== undefined) this.sourceUrl = init.sourceUrl;
-    this[INTERNAL] = { docSeq: init.docSeq, handles: new Map() };
+    this[INTERNAL] = { docSeq: init.docSeq };
   }
 
   /** Normalized text, cached until the element changes or `invalidateText()` is called. */

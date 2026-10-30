@@ -1,3 +1,4 @@
+import { restoreRecorded } from '../cleanup/remove';
 import { isParsedDocument } from '../env/dom';
 import { timers } from '../env/timers';
 import { FeedDetectorError, toFeedDetectorError } from '../errors';
@@ -328,10 +329,7 @@ export class UnifiedFeedImpl implements UnifiedFeed {
     for (const it of [...this.iterators]) it.queue.close();
     this.iterators.clear();
     if (opts.restore) {
-      for (const item of this.registry.order) {
-        for (const h of item[INTERNAL].handles.values()) h.restore();
-        item[INTERNAL].handles.clear();
-      }
+      for (const item of this.registry.order) restoreRecorded(item);
     }
     this.registry.clear();
     this.emitter.clear();
