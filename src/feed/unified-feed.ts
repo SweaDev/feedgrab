@@ -2,6 +2,8 @@ import { isParsedDocument } from '../env/dom';
 import { timers } from '../env/timers';
 import { FeedDetectorError, toFeedDetectorError } from '../errors';
 import { type EvaluationContext, evaluateItem } from '../exclude/engine';
+import { classifierKey, LlmClassifier } from '../exclude/llm-classifier';
+import { resolveBackend } from '../llm/backend';
 import { normalizeDescriptor } from '../profile/normalize';
 import { resolveContainers, resolveItems } from '../selector/evaluate';
 import { dominantSignature } from '../signature/signature';
@@ -29,6 +31,8 @@ import { ItemRegistry } from './registry';
 export type FeedState = {
   descriptor: FeedDescriptor;
   dominantSig: string;
+  /** Criteria of the descriptor's `llm-text` rules. */
+  criteria: string[];
   /** Placeholder elements (no id yet), re-checked on mutations. */
   placeholders: Set<Element>;
 };
@@ -59,6 +63,8 @@ export class UnifiedFeedImpl implements UnifiedFeed {
   private seq = 0;
   /** Live observer (when `live` and a `MutationObserver` exists). */
   observer: FeedObserver | null = null;
+  private classifier: LlmClassifier | null = null;
+  private readonly byLlmKey = new Map<string, Set<FeedItemImpl>>();
 
   constructor(doc: Document, profile: SiteProfile, opts: FeedOptions = {}) {
     this.doc = doc;
@@ -69,7 +75,23 @@ export class UnifiedFeedImpl implements UnifiedFeed {
     this.lostTimeoutMs = opts.lostTimeoutMs ?? 2000;
     this.baseUrl = opts.baseUrl ?? doc.baseURI ?? doc.URL;
     for (const descriptor of this.profile.feeds) {
-      this.states.set(descriptor.id, { descriptor, dominantSig: '', placeholders: new Set() });
+      const criteria = descriptor.exclude.flatMap((r) =>
+        r.kind === 'llm-text' ? [r.criteria] : [],
+      );
+      this.states.set(descriptor.id, {
+        descriptor,
+        dominantSig: '',
+        criteria,
+        placeholders: new Set(),
+      });
+    }
+    const needsClassifier = [...this.states.values()].some((st) => st.criteria.length > 0);
+    if (opts.llm && needsClassifier) {
+      this.classifier = new LlmClassifier(resolveBackend(opts.llm), {
+        ...opts.classifier,
+        onError: (error) => this.emitter.emit('feed:error', { error }),
+      });
+      this.classifier.onResult((keys) => this.onVerdicts(keys));
     }
   }
 
@@ -175,13 +197,49 @@ export class UnifiedFeedImpl implements UnifiedFeed {
     return changed;
   }
 
-  /** Hook for LLM text rules (T25). */
-  protected llmVerdictFor(_item: FeedItemImpl): EvaluationContext['llmVerdict'] {
-    return undefined;
+  private llmKeyOf(item: FeedItemImpl, criteria: string[]): string {
+    const key = classifierKey(item.text(), criteria);
+    const st = item[INTERNAL];
+    if (st.llmKey !== key) {
+      if (st.llmKey) this.byLlmKey.get(st.llmKey)?.delete(item);
+      st.llmKey = key;
+      let set = this.byLlmKey.get(key);
+      if (!set) {
+        set = new Set();
+        this.byLlmKey.set(key, set);
+      }
+      set.add(item);
+    }
+    return key;
   }
 
-  /** Hook for LLM text rules (T25). */
-  protected requestLlm(_item: FeedItemImpl): void {}
+  /** Verdict lookup for LLM text rules; without a backend the rules are ignored (kept). */
+  private llmVerdictFor(item: FeedItemImpl): EvaluationContext['llmVerdict'] {
+    const state = this.states.get(item.feedId);
+    if (!state || state.criteria.length === 0) return undefined;
+    const classifier = this.classifier;
+    if (!classifier) return () => ({ exclude: false, confidence: 0 });
+    return () => classifier.verdict(this.llmKeyOf(item, state.criteria));
+  }
+
+  private requestLlm(item: FeedItemImpl): void {
+    const state = this.states.get(item.feedId);
+    if (!this.classifier || !state || item.rescuedBy) return;
+    this.classifier.enqueue(
+      [{ key: this.llmKeyOf(item, state.criteria), text: item.text() }],
+      state.criteria,
+    );
+  }
+
+  private onVerdicts(keys: string[]): void {
+    if (this.disposed) return;
+    for (const key of keys) {
+      for (const item of [...(this.byLlmKey.get(key) ?? [])]) {
+        const prev = item.status;
+        if (this.evaluate(item)) this.notifyUpdated(item, prev);
+      }
+    }
+  }
 
   nextDocSeq(): number {
     this.seq += 1;
@@ -282,6 +340,8 @@ export class UnifiedFeedImpl implements UnifiedFeed {
   /** Stops observers and the classifier. */
   protected teardown(): void {
     this.observer?.stop();
+    this.classifier?.dispose();
+    this.byLlmKey.clear();
   }
 }
 

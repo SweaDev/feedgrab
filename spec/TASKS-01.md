@@ -437,7 +437,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(feed): add ingest for paginated and load-more documents (T24)`
 
-- [ ] **T25 — LLM text rules in the feed (pending → kept/excluded)**
+- [x] **T25 — LLM text rules in the feed (pending → kept/excluded)**
   - Depends: T20, T22
   - Read: SPEC L91-93, L109-112; PLAN L441-445
   - Files: `src/feed/unified-feed.ts`, `tests/unit/feed/llm-feed.test.ts`
