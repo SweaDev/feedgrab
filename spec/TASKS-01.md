@@ -632,7 +632,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `test: add batch performance and detection determinism tests (T37)`
 
-- [ ] **T38 — CI workflow**
+- [x] **T38 — CI workflow**
   - Depends: T35, T36
   - Read: PLAN L725-735
   - Files: `.github/workflows/ci.yml`

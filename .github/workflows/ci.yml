@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Cache Bun install cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint, typecheck and unit tests
+        run: bun run check
+
+      - name: Build
+        run: bun run build
+
+      - name: Node smoke test
+        run: node scripts/node-smoke.mjs
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium firefox
+
+      - name: E2E tests (Chromium, Firefox, extension smoke)
+        run: bun run test:e2e
+
+      - name: Build example extension (Chrome)
+        run: bun run --filter feed-detector-example-extension build
+
+      - name: Build example extension (Firefox)
+        run: bun run --filter feed-detector-example-extension build:firefox
