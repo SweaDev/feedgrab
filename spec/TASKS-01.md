@@ -422,7 +422,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(feed): observe live dom for new, removed and remounted items (T23)`
 
-- [ ] **T24 — Ingest follow-up documents (pagination / load-more)**
+- [x] **T24 — Ingest follow-up documents (pagination / load-more)**
   - Depends: T22
   - Read: SPEC L34, L102-104, L155; PLAN L446-457
   - Files: `src/feed/ingest.ts`, `src/feed/unified-feed.ts`, `tests/unit/feed/ingest.test.ts`
