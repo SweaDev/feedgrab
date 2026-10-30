@@ -1,6 +1,8 @@
+import { resolveBackend } from '../llm/backend';
 import type { DetectOptions, FeedDescriptor } from '../types';
 import { descriptorFromCandidate } from './descriptor';
 import { findCandidates } from './heuristic';
+import { refineWithLlm } from './llm-refine';
 
 /**
  * Proposes feeds for a document: the heuristic pass, then an optional LLM refinement.
@@ -14,6 +16,7 @@ export async function detectFeeds(
   opts: DetectOptions = {},
 ): Promise<FeedDescriptor[]> {
   const candidates = findCandidates(doc, opts);
+  if (opts.llm) return refineWithLlm(doc, candidates, resolveBackend(opts.llm), opts);
   const seen = new Set<string>();
   const descriptors: FeedDescriptor[] = [];
   for (const c of candidates) {
@@ -22,6 +25,5 @@ export async function detectFeeds(
     seen.add(d.id);
     descriptors.push(d);
   }
-  // LLM refinement seam (T17).
   return descriptors;
 }
