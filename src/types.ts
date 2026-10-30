@@ -1,5 +1,8 @@
 import type { LanguageModel } from 'ai';
 import type { FeedDetectorError } from './errors';
+import type { LlmProxyFn } from './llm/contract';
+
+export type { LlmProxyFn } from './llm/contract';
 
 /** A CSS or XPath selector. */
 export type Selector = { type: 'css' | 'xpath'; value: string };
@@ -86,9 +89,6 @@ export interface FeedItem {
   /** Normalized text, as used for LLM classification. */
   text(): string;
 }
-
-/** Proxy form of an LLM backend (extension background, headless host). */
-export type LlmProxyFn = (req: unknown, opts?: { signal?: AbortSignal }) => Promise<unknown>;
 
 /** A `LanguageModel` (direct) or a proxy function. */
 export type LlmBackend = LanguageModel | LlmProxyFn;

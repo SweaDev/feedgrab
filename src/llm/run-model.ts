@@ -1,4 +1,10 @@
-/** Runs an LLM request against a `LanguageModel` (replaced in T15). */
-export async function runModel(): Promise<never> {
+import type { LanguageModel } from 'ai';
+
+/** Runs an LLM request against a `LanguageModel` (implemented in T15). */
+export async function runModel(
+  _req: unknown,
+  _model: LanguageModel,
+  _opts?: { signal?: AbortSignal },
+): Promise<unknown> {
   throw new Error('not implemented');
 }

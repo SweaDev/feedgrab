@@ -242,7 +242,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
 
 ## Phase E — LLM
 
-- [ ] **T14 — LLM contracts, proxy, and backend resolution**
+- [x] **T14 — LLM contracts, proxy, and backend resolution**
   - Depends: T03
   - Read: SPEC L32-33, L165-166, L176, L203-207; PLAN L53-60, L77, L466-478
   - Files: `src/llm/contract.ts`, `src/llm/proxy.ts`, `src/llm/backend.ts`, `src/index.ts`, `tests/unit/llm/proxy.test.ts`
