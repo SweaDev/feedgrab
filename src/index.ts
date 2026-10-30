@@ -4,6 +4,7 @@ export type { ErrorCode } from './errors';
 export { FeedDetectorError } from './errors';
 export type { BuiltinRule } from './exclude/builtin';
 export { BUILTIN_RULES } from './exclude/builtin';
+export { openFeed } from './feed/unified-feed';
 export type * from './llm/contract';
 export { createLlmProxy } from './llm/proxy';
 export { matchProfile } from './profile/match';

@@ -384,7 +384,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(feed): add item ids, emitter, async queue and registry (T21)`
 
-- [ ] **T22 — openFeed core (initial scan, evaluation, snapshot, iteration, dispose)**
+- [x] **T22 — openFeed core (initial scan, evaluation, snapshot, iteration, dispose)**
   - Depends: T21, T19, T12
   - Read: SPEC L97-113, L154; PLAN L64-66, L406-428
   - Files: `src/feed/unified-feed.ts`, `src/index.ts`, `tests/unit/feed/open-feed.test.ts`
