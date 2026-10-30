@@ -130,7 +130,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
 
 ## Phase B — Selectors & signatures
 
-- [ ] **T07 — Selector evaluation, validateSelector, matchSelector**
+- [x] **T07 — Selector evaluation, validateSelector, matchSelector**
   - Depends: T05
   - Read: SPEC L77-81; PLAN L43-46, L222-231
   - Files: `src/selector/evaluate.ts`, `src/selector/match.ts`, `tests/unit/selector/evaluate.test.ts`
