@@ -9,3 +9,9 @@ export async function openFixture(page: Page, name: string, scenarios = false): 
   await page.addScriptTag({ path: join(ROOT, 'dist/browser.global.js') });
   if (scenarios) await page.addScriptTag({ path: join(ROOT, 'dist-test/scenarios.global.js') });
 }
+
+/** `globalThis` inside the page after `openFixture`. */
+export type PageGlobal = {
+  FeedDetector: typeof import('../../src/index') & typeof import('../../src/overlay/index');
+  [key: string]: unknown;
+};
