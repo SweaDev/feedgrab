@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Feed Detector</title>
+    <style>
+      body { font: 13px system-ui, sans-serif; width: 300px; margin: 12px; color: #111827; }
+      button { font: inherit; cursor: pointer; }
+      #detect { width: 100%; padding: 6px; background: #2563eb; color: #fff; border: 0; border-radius: 4px; }
+      ul { list-style: none; padding: 0; }
+      li { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin: 4px 0; }
+      .muted { color: #6b7280; }
+      .link { background: none; border: 0; padding: 0; color: #2563eb; text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <button id="detect" type="button">Detect feeds on this page</button>
+    <h3>Profiles for <span id="host" class="muted"></span></h3>
+    <ul id="profiles"></ul>
+    <p><button id="options" type="button" class="link">Settings</button></p>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="manifest.open_in_tab" content="true" />
+    <title>Feed Detector — Settings</title>
+    <style>
+      body { font: 14px system-ui, sans-serif; max-width: 560px; margin: 24px auto; color: #111827; }
+      fieldset { border: 1px solid #e5e7eb; border-radius: 6px; margin: 0 0 16px; }
+      label { display: grid; grid-template-columns: 160px 1fr; align-items: center; gap: 8px; margin: 6px 0; }
+      #status { color: #16a34a; margin-left: 8px; }
+    </style>
+  </head>
+  <body>
+    <h1>Feed Detector settings</h1>
+    <form id="form">
+      <fieldset>
+        <legend>LLM</legend>
+        <label><span>Enable LLM</span><input type="checkbox" name="enableLlm" /></label>
+        <label
+          ><span>Provider</span>
+          <select name="provider">
+            <option value="ollama">Ollama (local)</option>
+            <option value="openai">OpenAI</option>
+            <option value="openrouter">OpenRouter</option>
+            <option value="gemini">Gemini</option>
+          </select>
+        </label>
+        <label><span>Model</span><input name="model" placeholder="e.g. llama3.2" /></label>
+        <label><span>Base URL</span><input name="baseURL" placeholder="provider default" /></label>
+        <label><span>API key</span><input name="apiKey" type="password" autocomplete="off" /></label>
+      </fieldset>
+      <fieldset id="theme">
+        <legend>Overlay theme</legend>
+        <label
+          ><span>Panel position</span>
+          <select name="panelPosition">
+            <option value="top-right">Top right</option>
+            <option value="top-left">Top left</option>
+            <option value="bottom-right">Bottom right</option>
+            <option value="bottom-left">Bottom left</option>
+          </select>
+        </label>
+      </fieldset>
+      <button type="submit">Save</button><span id="status" role="status"></span>
+    </form>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
