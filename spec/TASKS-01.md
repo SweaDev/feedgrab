@@ -454,7 +454,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(feed): classify items with llm text rules and emit status updates (T25)`
 
-- [ ] **T26 — Removal helpers, dispose restore, and the read-only invariant**
+- [x] **T26 — Removal helpers, dispose restore, and the read-only invariant**
   - Depends: T22, T24
   - Read: SPEC L20, L38, L127-135, L245; PLAN L76, L458-465, L627-633
   - Files: `src/cleanup/remove.ts`, `src/feed/unified-feed.ts` (`dispose` restore), `src/index.ts`, `tests/unit/cleanup/remove.test.ts`, `tests/unit/feed/readonly.test.ts`

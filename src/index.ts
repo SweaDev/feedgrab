@@ -1,3 +1,4 @@
+export { type RemovalHandle, type RemovalMode, removeItem, removeParts } from './cleanup/remove';
 export { detectFeeds } from './detect/detect';
 export { detectFromSelector, inspectFromElement } from './detect/inspect';
 export type { ErrorCode } from './errors';
