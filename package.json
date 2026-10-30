@@ -5,6 +5,39 @@
   "type": "module",
   "license": "MIT",
   "author": "Fayaz Ahmed",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./overlay": {
+      "types": "./dist/types/overlay/index.d.ts",
+      "import": "./dist/overlay/index.js"
+    },
+    "./server": {
+      "types": "./dist/types/server.d.ts",
+      "import": "./dist/server.js"
+    },
+    "./llm": {
+      "types": "./dist/types/llm/index.d.ts",
+      "import": "./dist/llm/index.js"
+    },
+    "./llm/providers": {
+      "types": "./dist/types/llm/providers.d.ts",
+      "import": "./dist/llm/providers.js"
+    },
+    "./browser": "./dist/browser.global.js",
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/types/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "sideEffects": [
+    "./dist/browser.global.js"
+  ],
   "workspaces": [
     "examples/*"
   ],
