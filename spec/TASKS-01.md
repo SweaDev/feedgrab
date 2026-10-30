@@ -91,7 +91,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(env): add dom, hash, text and timer utilities (T04)`
 
-- [ ] **T05 — Server entry, XPath registry, test helpers, and DOM capability probe**
+- [x] **T05 — Server entry, XPath registry, test helpers, and DOM capability probe**
   - Depends: T04
   - Read: SPEC L34, L38; PLAN L61-66, L222-231 (xpath.ts part), L569-578, L617-626
   - Files: `src/selector/xpath.ts`, `src/server.ts`, `tests/helpers/dom.ts`, `tests/helpers/snapshot.ts`, `tests/unit/server/server.test.ts`, `tests/unit/server/capabilities.test.ts`
