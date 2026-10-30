@@ -1,0 +1,13 @@
+{
+  "feeds": [
+    {
+      "fixtureFeed": "timeline",
+      "itemCount": 12,
+      "excluded": {
+        "builtin": 2,
+        "llm": 1
+      },
+      "parts": 1
+    }
+  ]
+}

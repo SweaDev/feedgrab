@@ -114,7 +114,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`. The capability results are recorded in NOTES-01.
   - Commit: `feat(server): add parseHtml, xpath registry and test helpers (T05)`
 
-- [ ] **T06 — Synthetic fixture catalog**
+- [x] **T06 — Synthetic fixture catalog**
   - Depends: T05
   - Read: PLAN L594-616
   - Files: `tests/fixtures/*.html`, `tests/fixtures/*.expected.json`, `tests/fixtures/README.md`, `tests/unit/fixtures.test.ts`
