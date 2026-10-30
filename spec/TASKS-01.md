@@ -597,7 +597,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run --filter feed-detector-example-extension build` and `bun run --filter feed-detector-example-extension build:firefox` both succeed (`.output/firefox-mv3/manifest.json` exists). `bun run check` passes.
   - Commit: `feat(example): add popup and options pages with firefox build (T34)`
 
-- [ ] **T35 — Extension smoke E2E (Chromium)**
+- [x] **T35 — Extension smoke E2E (Chromium)**
   - Depends: T34, T31
   - Read: PLAN L717-724
   - Files: `tests/e2e/extension.spec.ts`, `playwright.config.ts` (add an `extension` project that runs on Chromium only), `package.json` (script `test:e2e:ext`)

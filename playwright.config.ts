@@ -14,5 +14,7 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] }, testIgnore: /extension\.spec\.ts/ },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] }, testIgnore: /extension\.spec\.ts/ },
+    // The example extension smoke test (Chromium only; launches its own persistent context).
+    { name: 'extension', use: { ...devices['Desktop Chrome'] }, testMatch: /extension\.spec\.ts/ },
   ],
 });
