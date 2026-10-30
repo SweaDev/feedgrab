@@ -20,6 +20,7 @@ import type {
 import { AsyncQueue } from './async-queue';
 import { Emitter } from './emitter';
 import { FeedItemImpl, INTERNAL } from './feed-item';
+import { ingestDocument } from './ingest';
 import { itemId } from './item-id';
 import { canObserve, FeedObserver } from './observer';
 import { ItemRegistry } from './registry';
@@ -257,9 +258,9 @@ export class UnifiedFeedImpl implements UnifiedFeed {
     return this.emitter.once(evt, fn);
   }
 
-  ingest(_input: Document | string, _opts: { url?: string } = {}): FeedItem[] {
+  ingest(input: Document | string, opts: { url?: string } = {}): FeedItem[] {
     this.assertOpen();
-    throw new Error('not implemented');
+    return ingestDocument(this, input, opts);
   }
 
   dispose(opts: { restore?: boolean } = {}): void {
