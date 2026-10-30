@@ -610,7 +610,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
 
 ## Phase K — Finishing
 
-- [ ] **T36 — Opt-in live LLM tests and the Node smoke script**
+- [x] **T36 — Opt-in live LLM tests and the Node smoke script**
   - Depends: T25, T17, T16, T30
   - Read: SPEC L256; PLAN L663-670
   - Files: `tests/live/detect.live.test.ts`, `tests/live/classify.live.test.ts`, `scripts/node-smoke.mjs`, `package.json` (script `smoke:node`)
