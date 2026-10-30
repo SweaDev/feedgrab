@@ -500,7 +500,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(overlay): add pure overlay state reducer (T28)`
 
-- [ ] **T29 — Overlay panel UI and openOverlay flow**
+- [x] **T29 — Overlay panel UI and openOverlay flow**
   - Depends: T27, T28, T11, T22
   - Read: SPEC L49, L70-81, L146; PLAN L553-568
   - Files: `src/overlay/panel.ts`, `src/overlay/open-overlay.ts`, `src/overlay/index.ts`, `tests/unit/overlay/panel.test.ts`, `tests/unit/overlay/open-overlay.test.ts`
