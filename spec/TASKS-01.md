@@ -155,7 +155,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(signature): add stable class filter and structural signatures (T08)`
 
-- [ ] **T09 — Selector generation (container + item)**
+- [x] **T09 — Selector generation (container + item)**
   - Depends: T07, T08
   - Read: PLAN L43-46, L232-245
   - Files: `src/selector/generate.ts`, `tests/unit/selector/generate.test.ts`
@@ -658,3 +658,18 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
     4. Run the full Definition of Done (PLAN L749-758). Fix any failures before ticking.
   - Accept: every item in PLAN L750-758 holds.
   - Commit: `docs: write readme and sync spec api sketch with implementation (T39)`
+
+## Phase L — Spec consistency follow-ups (added during implementation)
+
+> Note: added while working T09. Some implementation decisions (logged in `spec/NOTES-01.md`) make SPEC-01/PLAN-01 text outside §10 inaccurate. Those files cannot be edited before T39 without shifting the cited line ranges, so the sync happens here, after T39.
+
+- [ ] **T40 — Sync SPEC/PLAN with the implementation deviations logged in NOTES-01**
+  - Depends: T39
+  - Read: `spec/NOTES-01.md`
+  - Files: `spec/SPEC-01.md`, `spec/PLAN-01.md`
+  - Do:
+    1. SPEC §12 and PLAN §4.1/§5.3: replace `@medv/finder` with the local deterministic selector generator (T09 note).
+    2. Apply any other NOTES-01 entry tagged `(spec-sync)` to the cited SPEC/PLAN text.
+    3. Keep edits minimal; line numbers no longer matter after T39.
+  - Accept: `grep -n "medv" spec/SPEC-01.md spec/PLAN-01.md` returns nothing; `bun run check` passes.
+  - Commit: `docs: sync spec and plan with implementation deviations (T40)`
