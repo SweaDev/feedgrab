@@ -1,0 +1,22 @@
+{
+  "feeds": [
+    {
+      "fixtureFeed": "news",
+      "itemCount": 8,
+      "excluded": {
+        "builtin": 0,
+        "llm": 0
+      },
+      "parts": 0
+    },
+    {
+      "fixtureFeed": "updates",
+      "itemCount": 6,
+      "excluded": {
+        "builtin": 0,
+        "llm": 0
+      },
+      "parts": 0
+    }
+  ]
+}
