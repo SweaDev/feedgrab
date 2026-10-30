@@ -406,7 +406,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(feed): add openFeed with unified ordering, iteration and dispose (T22)`
 
-- [ ] **T23 — Live observation (MutationObserver, re-attach dedupe, re-mount, feed:lost, placeholders)**
+- [x] **T23 — Live observation (MutationObserver, re-attach dedupe, re-mount, feed:lost, placeholders)**
   - Depends: T22
   - Read: SPEC L100-101, L109-112; PLAN L71, L129-132, L429-440
   - Files: `src/feed/observer.ts`, `src/feed/unified-feed.ts`, `tests/unit/feed/observer.test.ts`

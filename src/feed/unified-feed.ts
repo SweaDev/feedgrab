@@ -21,6 +21,7 @@ import { AsyncQueue } from './async-queue';
 import { Emitter } from './emitter';
 import { FeedItemImpl, INTERNAL } from './feed-item';
 import { itemId } from './item-id';
+import { canObserve, FeedObserver } from './observer';
 import { ItemRegistry } from './registry';
 
 /** Per-descriptor state. */
@@ -55,6 +56,8 @@ export class UnifiedFeedImpl implements UnifiedFeed {
   private readonly iterators = new Set<Iterator>();
   private disposed = false;
   private seq = 0;
+  /** Live observer (when `live` and a `MutationObserver` exists). */
+  observer: FeedObserver | null = null;
 
   constructor(doc: Document, profile: SiteProfile, opts: FeedOptions = {}) {
     this.doc = doc;
@@ -88,6 +91,8 @@ export class UnifiedFeedImpl implements UnifiedFeed {
       for (const feedId of lost) this.emitter.emit('feed:lost', { feedId });
       for (const item of added) this.notifyAdded(item);
     });
+    if (this.live && canObserve(this.doc))
+      this.observer = new FeedObserver(this).start(new Set(lost));
     return this;
   }
 
@@ -116,6 +121,10 @@ export class UnifiedFeedImpl implements UnifiedFeed {
     this.emitter.emit('feed:error', feedId ? { feedId, error } : { error });
   }
 
+  itemIdOf(el: Element, baseUrl = this.baseUrl): string | null {
+    return itemId(el, baseUrl, this.minItemTextLength);
+  }
+
   /** Creates, evaluates and registers new items; returns them (events not emitted). */
   addElements(
     state: FeedState,
@@ -127,7 +136,7 @@ export class UnifiedFeedImpl implements UnifiedFeed {
     const added: FeedItemImpl[] = [];
     for (const el of elements) {
       if (this.registry.idOf(el)) continue;
-      const id = itemId(el, baseUrl, this.minItemTextLength);
+      const id = this.itemIdOf(el, baseUrl);
       if (id === null) {
         if (docSeq === 0) state.placeholders.add(el);
         continue;
@@ -269,8 +278,10 @@ export class UnifiedFeedImpl implements UnifiedFeed {
     this.emitter.clear();
   }
 
-  /** Hook for observers and the classifier. */
-  protected teardown(): void {}
+  /** Stops observers and the classifier. */
+  protected teardown(): void {
+    this.observer?.stop();
+  }
 }
 
 /**
