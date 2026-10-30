@@ -330,7 +330,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(exclude): add builtin rules, specificity and selector rule matching (T18)`
 
-- [ ] **T19 — Exclusion engine (precedence, includes, parts, reasons)**
+- [x] **T19 — Exclusion engine (precedence, includes, parts, reasons)**
   - Depends: T18
   - Read: SPEC L83-95; PLAN L356-377
   - Files: `src/exclude/engine.ts`, `tests/unit/exclude/engine.test.ts`
