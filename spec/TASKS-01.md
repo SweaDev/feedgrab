@@ -187,7 +187,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(detect): add heuristic feed candidate discovery and scoring (T10)`
 
-- [ ] **T11 — Descriptors, detectFeeds (heuristic), inspectFromElement, detectFromSelector**
+- [x] **T11 — Descriptors, detectFeeds (heuristic), inspectFromElement, detectFromSelector**
   - Depends: T09, T10
   - Read: SPEC L47-53, L74, L139-143; PLAN L43-52, L293-311
   - Files: `src/detect/descriptor.ts`, `src/detect/detect.ts`, `src/detect/inspect.ts`, `src/index.ts`, `tests/unit/detect/detect.test.ts`, `tests/unit/detect/inspect.test.ts`
