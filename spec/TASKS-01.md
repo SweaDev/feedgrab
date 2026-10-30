@@ -555,7 +555,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run test:e2e` passes on Chromium and Firefox.
   - Commit: `test(e2e): add playwright parity and live scroll tests (T31)`
 
-- [ ] **T32 — Overlay and theme E2E**
+- [x] **T32 — Overlay and theme E2E**
   - Depends: T31
   - Read: SPEC L70-76; PLAN L553-566, L649-656
   - Files: `tests/e2e/overlay.spec.ts`, `tests/e2e/theme.spec.ts`
