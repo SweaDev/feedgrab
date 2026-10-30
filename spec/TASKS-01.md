@@ -58,7 +58,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run build` produces `dist/index.js`, `dist/overlay/index.js`, `dist/server.js`, `dist/llm/index.js`, `dist/llm/providers.js`, `dist/browser.global.js`, and `dist/types/index.d.ts`. `node -e "import('./dist/index.js').then(m=>console.log(m.VERSION))"` prints `0.1.0`. `bun run scripts/check-size.ts` passes.
   - Commit: `build: add bun build script, entry stubs and exports map (T02)`
 
-- [ ] **T03 — Public types and the error class**
+- [x] **T03 — Public types and the error class**
   - Depends: T01
   - Read: SPEC L115-125, L137-177; PLAN L43-52, L76, L195-208
   - Files: `src/types.ts`, `src/errors.ts`, `tests/unit/errors.test.ts`
