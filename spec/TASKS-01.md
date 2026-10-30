@@ -347,7 +347,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Accept: `bun run check`.
   - Commit: `feat(exclude): add exclusion engine with precedence and include rescue (T19)`
 
-- [ ] **T20 — LLM text classifier (batching, cache, abort, retry)**
+- [x] **T20 — LLM text classifier (batching, cache, abort, retry)**
   - Depends: T14, T04
   - Read: SPEC L91-93; PLAN L378-389
   - Files: `src/exclude/llm-classifier.ts`, `tests/unit/exclude/llm-classifier.test.ts`
