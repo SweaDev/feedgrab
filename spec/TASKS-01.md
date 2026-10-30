@@ -27,7 +27,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
 
 ## Phase A — Setup
 
-- [ ] **T01 — Scaffold project, tooling, and install deps**
+- [x] **T01 — Scaffold project, tooling, and install deps**
   - Depends: none
   - Read: PLAN L8-41, L145-178
   - Files: `package.json`, `tsconfig.json`, `biome.json`, `bunfig.toml`, `.gitignore`, `.env.example`, `LICENSE`, `src/index.ts`, `tests/unit/smoke.test.ts`, `spec/NOTES-01.md`

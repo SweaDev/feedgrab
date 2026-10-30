@@ -1,0 +1,7 @@
+node_modules
+dist
+.env
+.output
+.wxt
+test-results
+playwright-report
