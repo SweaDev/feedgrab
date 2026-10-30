@@ -27,11 +27,15 @@ function splitTopLevel(s: string, sep: string): string[] {
   return out.map((x) => x.trim()).filter(Boolean);
 }
 
+// Non-ASCII counts as an identifier character. Checked by code unit: a regex range ending in the
+// U+FFFF noncharacter ends up raw in bundles, which Chrome rejects as non-UTF-8 in extension files.
+const isIdentChar = (ch: string) => /[-\w]/.test(ch) || ch.charCodeAt(0) >= 0x80;
+
 function readIdent(s: string, i: number): number {
   while (i < s.length) {
     const ch = s[i] as string;
     if (ch === '\\') i += 2;
-    else if (/[-\w\u0080-￿]/.test(ch)) i++;
+    else if (isIdentChar(ch)) i++;
     else break;
   }
   return i;
@@ -82,7 +86,7 @@ function complexSpecificity(s: string): Specificity {
       } else if (name === 'is' || name === 'not' || name === 'has' || name === 'matches') {
         spec = add(spec, cssSpecificity(arg));
       } else spec[1]++;
-    } else if (/[a-zA-Z_\u0080-￿-]/.test(ch)) {
+    } else if (/[a-zA-Z_-]/.test(ch) || ch.charCodeAt(0) >= 0x80) {
       spec[2]++;
       i = readIdent(s, i);
     } else i++;
