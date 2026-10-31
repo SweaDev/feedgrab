@@ -17,9 +17,18 @@ injected bundle), and **server-side** (Bun/Node with a parsed DOM), using the sa
 
 ## Install
 
+Feedgrab is not published to npm yet. Each [GitHub release](https://github.com/SweaDev/feedgrab/releases)
+has a prebuilt package tarball attached. Install it by URL with any package manager:
+
 ```sh
-bun add feedgrab        # or npm i feedgrab
+bun add https://github.com/SweaDev/feedgrab/releases/download/v0.1.0/feedgrab-0.1.0.tgz
+# or: npm i https://github.com/SweaDev/feedgrab/releases/download/v0.1.0/feedgrab-0.1.0.tgz
 ```
+
+To upgrade, install the tarball URL of a newer release. Installing straight from the repository
+(`bun add github:SweaDev/feedgrab`) does **not** work, because the built `dist/` is not committed.
+To use unreleased code, clone the repository, run `bun install && bun run build`, and then
+`bun add ../feedgrab` from your project.
 
 Optional peer dependencies, install only what you use:
 
@@ -238,6 +247,10 @@ on every fixture by comparing DOM snapshots. The page changes only when **you** 
 | `bun run test:live` | Opt-in tests against a real model (skipped unless `FD_LLM_MODEL` is set) |
 | `bun run smoke:node` | Build, then run the built package under Node |
 | `bun run --filter feedgrab-example-extension build` / `build:firefox` | Example extension |
+
+To release, bump `version` in `package.json`, commit, then tag and push it (`git tag v0.2.0 &&
+git push origin v0.2.0`). The release workflow runs the full CI, packs the build with `npm pack`,
+and attaches the tarball to a new GitHub release. The tag must match `package.json`.
 
 Specs and implementation notes are in [`spec/`](spec/).
 
