@@ -20,7 +20,7 @@ test('mountHost adds exactly one node and unmount removes it', () => {
   const count = doc.documentElement.children.length;
   const m = mountHost(doc, { theme: { panelPosition: 'bottom-left' }, customCss: '.x{}' });
   expect(doc.documentElement.children.length).toBe(count + 1);
-  expect(m.host.hasAttribute('data-feed-detector-overlay')).toBe(true);
+  expect(m.host.hasAttribute('data-feedgrab-overlay')).toBe(true);
   expect(m.root.mode).toBe('open');
   expect(m.panel.className).toContain('fd-pos-bottom-left');
   expect(m.root.querySelector('style')!.textContent).toContain('.x{}');

@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from 'bun:test';
 import { __setTimers } from '../../../src/env/timers';
-import type { FeedDetectorError } from '../../../src/errors';
+import type { FeedgrabError } from '../../../src/errors';
 import { classifierKey, LlmClassifier } from '../../../src/exclude/llm-classifier';
 import { resolveBackend } from '../../../src/llm/backend';
 import type { ClassifyRequest } from '../../../src/llm/contract';
@@ -125,7 +125,7 @@ test('failure → one retry → error verdict and onError', async () => {
   const backend = fnBackend(() => {
     throw new Error('down');
   });
-  const errors: FeedDetectorError[] = [];
+  const errors: FeedgrabError[] = [];
   const c = new LlmClassifier(resolveBackend(backend), { onError: (e) => errors.push(e) });
   const [one] = items(1);
   c.enqueue([one!], criteria);

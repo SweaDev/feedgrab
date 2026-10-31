@@ -1,5 +1,5 @@
 import { hasLayout } from '../env/dom';
-import { FeedDetectorError } from '../errors';
+import { FeedgrabError } from '../errors';
 import { evaluateSelector, resolveItems } from '../selector/evaluate';
 import { containerSelector, itemSelector } from '../selector/generate';
 import { isSameKind } from '../signature/signature';
@@ -23,7 +23,7 @@ export function inspectFromElement(el: Element, opts: { minItems?: number } = {}
       return descriptorFromCandidate(c, 'inspect');
     }
   }
-  throw new FeedDetectorError('NO_REPEATING_ANCESTOR', 'No repeating ancestor group found');
+  throw new FeedgrabError('NO_REPEATING_ANCESTOR', 'No repeating ancestor group found');
 }
 
 function lowestCommonAncestor(els: Element[]): Element {
@@ -45,26 +45,26 @@ export function detectFromSelector(doc: Document, input: SelectorInput): FeedDes
     const containers = evaluateSelector(container, doc);
     const first = containers[0];
     if (!first)
-      throw new FeedDetectorError('NO_MATCH', 'Container selector matches nothing', { container });
+      throw new FeedgrabError('NO_MATCH', 'Container selector matches nothing', { container });
     if (item) {
       if (resolveItems(first, { item }).length === 0) {
-        throw new FeedDetectorError('NO_MATCH', 'Item selector matches nothing', { item });
+        throw new FeedgrabError('NO_MATCH', 'Item selector matches nothing', { item });
       }
     } else {
       const group = largestGroup(itemChildren(first));
       if (group.length === 0)
-        throw new FeedDetectorError('NO_MATCH', 'Container has no items', { container });
+        throw new FeedgrabError('NO_MATCH', 'Container has no items', { container });
       item = itemSelector(first, group);
     }
   } else if (item) {
     const items = evaluateSelector(item, doc);
     if (items.length === 0)
-      throw new FeedDetectorError('NO_MATCH', 'Item selector matches nothing', { item });
+      throw new FeedgrabError('NO_MATCH', 'Item selector matches nothing', { item });
     const lca = lowestCommonAncestor(items);
-    if (!lca) throw new FeedDetectorError('NO_MATCH', 'Items have no common container', { item });
+    if (!lca) throw new FeedgrabError('NO_MATCH', 'Items have no common container', { item });
     container = containerSelector(lca);
   } else {
-    throw new FeedDetectorError('INVALID_SELECTOR', 'Provide a container and/or item selector');
+    throw new FeedgrabError('INVALID_SELECTOR', 'Provide a container and/or item selector');
   }
   return {
     id: descriptorId(container, item),

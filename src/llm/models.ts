@@ -3,7 +3,7 @@ import type { createOpenAI } from '@ai-sdk/openai';
 import type { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import type { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import type { LanguageModel } from 'ai';
-import { FeedDetectorError } from '../errors';
+import { FeedgrabError } from '../errors';
 import { DEFAULT_BASE_URLS, type LlmConfig, LlmConfigSchema, readEnvConfig } from './config';
 
 /** Provider factories, injected so bundlers never resolve packages that aren't installed. */
@@ -21,10 +21,10 @@ const PACKAGES: Record<LlmConfig['provider'], string> = {
   gemini: '@ai-sdk/google',
 };
 
-function missing(provider: LlmConfig['provider']): FeedDetectorError {
-  return new FeedDetectorError(
+function missing(provider: LlmConfig['provider']): FeedgrabError {
+  return new FeedgrabError(
     'LLM_PROVIDER_MISSING',
-    `No factory for provider "${provider}": install ${PACKAGES[provider]} and pass it (e.g. allProviders from "feed-detector/llm/providers")`,
+    `No factory for provider "${provider}": install ${PACKAGES[provider]} and pass it (e.g. allProviders from "feedgrab/llm/providers")`,
     { provider, package: PACKAGES[provider] },
   );
 }
@@ -32,13 +32,13 @@ function missing(provider: LlmConfig['provider']): FeedDetectorError {
 /**
  * Builds a `LanguageModel` from a config and injected provider factories (synchronous).
  * @example
- * import { allProviders } from 'feed-detector/llm/providers';
+ * import { allProviders } from 'feedgrab/llm/providers';
  * const model = createModel({ provider: 'ollama', model: 'llama3.2' }, allProviders);
  */
 export function createModel(config: LlmConfig, providers: ProviderFactories): LanguageModel {
   const parsed = LlmConfigSchema.safeParse(config);
   if (!parsed.success) {
-    throw new FeedDetectorError('LLM_CONFIG', 'Invalid LLM configuration', {
+    throw new FeedgrabError('LLM_CONFIG', 'Invalid LLM configuration', {
       issues: parsed.error.issues,
     });
   }
@@ -70,6 +70,6 @@ export function createModelFromEnv(
   env?: Record<string, string | undefined>,
 ): LanguageModel {
   const config = readEnvConfig(env);
-  if (!config) throw new FeedDetectorError('LLM_CONFIG', 'FD_LLM_MODEL is not set');
+  if (!config) throw new FeedgrabError('LLM_CONFIG', 'FD_LLM_MODEL is not set');
   return createModel(config, providers);
 }

@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { detectFromSelector, inspectFromElement } from '../../../src/detect/inspect';
-import { FeedDetectorError } from '../../../src/errors';
+import { FeedgrabError } from '../../../src/errors';
 import { resolveContainers, resolveItems } from '../../../src/selector/evaluate';
 import { loadFixture } from '../../helpers/dom';
 
@@ -11,7 +11,7 @@ function code(fn: () => unknown): string | undefined {
   try {
     fn();
   } catch (e) {
-    return e instanceof FeedDetectorError ? e.code : 'OTHER';
+    return e instanceof FeedgrabError ? e.code : 'OTHER';
   }
   return undefined;
 }

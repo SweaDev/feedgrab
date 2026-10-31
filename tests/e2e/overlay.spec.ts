@@ -7,7 +7,7 @@ async function startOverlay(page: Page, opts: Record<string, unknown> = {}) {
   await openFixture(page, 'social-feed');
   await page.evaluate(async (opts) => {
     const g = globalThis as unknown as PageGlobal;
-    const FD = g.FeedDetector;
+    const FD = g.Feedgrab;
     g.__before = document.documentElement.outerHTML;
     const proposals = await FD.detectFeeds(document);
     g.__outcome = FD.openOverlay(document, proposals, opts).then(
@@ -21,22 +21,22 @@ const outcome = (page: Page) =>
   page.evaluate(() => (globalThis as unknown as { __outcome: Promise<Outcome> }).__outcome);
 
 const action = (page: Page, name: string) =>
-  page.locator(`[data-feed-detector-overlay] [data-fd-action="${name}"]`);
+  page.locator(`[data-feedgrab-overlay] [data-fd-action="${name}"]`);
 
 test('confirm a feed with an exclude rule; the page DOM is unchanged', async ({ page }) => {
   await startOverlay(page);
-  await expect(page.locator('[data-feed-detector-overlay]')).toHaveCount(1);
-  await expect(page.locator('[data-feed-detector-overlay] .fd-box.fd-feed').first()).toBeAttached();
-  await expect(page.locator('[data-feed-detector-overlay] .fd-box.fd-item').first()).toBeAttached();
-  await expect(page.locator('[data-feed-detector-overlay] .fd-box.fd-excluded')).toHaveCount(2);
+  await expect(page.locator('[data-feedgrab-overlay]')).toHaveCount(1);
+  await expect(page.locator('[data-feedgrab-overlay] .fd-box.fd-feed').first()).toBeAttached();
+  await expect(page.locator('[data-feedgrab-overlay] .fd-box.fd-item').first()).toBeAttached();
+  await expect(page.locator('[data-feedgrab-overlay] .fd-box.fd-excluded')).toHaveCount(2);
 
   await action(page, 'toggle-accept').first().check();
   await action(page, 'exclude-input').fill('.post.promoted');
   await action(page, 'exclude-scope').selectOption('item');
   await action(page, 'add-exclude').click();
-  await expect(
-    page.locator('[data-feed-detector-overlay] [data-fd-action="remove-rule"]'),
-  ).toHaveCount(1);
+  await expect(page.locator('[data-feedgrab-overlay] [data-fd-action="remove-rule"]')).toHaveCount(
+    1,
+  );
   await action(page, 'save').click();
 
   const result = await outcome(page);
@@ -52,7 +52,7 @@ test('confirm a feed with an exclude rule; the page DOM is unchanged', async ({ 
       scope: 'item',
     }),
   ]);
-  await expect(page.locator('[data-feed-detector-overlay]')).toHaveCount(0);
+  await expect(page.locator('[data-feedgrab-overlay]')).toHaveCount(0);
   const same = await page.evaluate(
     () =>
       document.documentElement.outerHTML ===
@@ -65,5 +65,5 @@ test('cancel rejects with OVERLAY_CANCELLED and cleans up', async ({ page }) => 
   await startOverlay(page);
   await action(page, 'cancel').click();
   expect(await outcome(page)).toEqual({ ok: false, code: 'OVERLAY_CANCELLED' });
-  await expect(page.locator('[data-feed-detector-overlay]')).toHaveCount(0);
+  await expect(page.locator('[data-feedgrab-overlay]')).toHaveCount(0);
 });

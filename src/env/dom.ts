@@ -72,7 +72,7 @@ export const IGNORED_TAGS = new Set([
 ]);
 
 /** Tag set on documents created by `parseHtml`. */
-export const PARSED_DOCUMENT = Symbol.for('feed-detector.parsed');
+export const PARSED_DOCUMENT = Symbol.for('feedgrab.parsed');
 
 /** True for documents created by `parseHtml`. */
 export function isParsedDocument(doc: Document): boolean {

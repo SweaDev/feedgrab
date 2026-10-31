@@ -1,6 +1,6 @@
-import { FeedDetectorError } from 'feed-detector';
-import { createModel, handleLlmRequest, type LlmConfig, readEnvConfig } from 'feed-detector/llm';
-import { allProviders } from 'feed-detector/llm/providers';
+import { FeedgrabError } from 'feedgrab';
+import { createModel, handleLlmRequest, type LlmConfig, readEnvConfig } from 'feedgrab/llm';
+import { allProviders } from 'feedgrab/llm/providers';
 import { browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/utils/define-background';
 import { isMessage, type LlmReply } from '../lib/messages';
@@ -15,7 +15,7 @@ export default defineBackground(() => {
       settings.llm ??
       readEnvConfig(import.meta.env as unknown as Record<string, string | undefined>);
     if (!config)
-      throw new FeedDetectorError('LLM_CONFIG', 'No LLM configured (options page or FD_LLM_* env)');
+      throw new FeedgrabError('LLM_CONFIG', 'No LLM configured (options page or FD_LLM_* env)');
     const key = JSON.stringify(config);
     let model = models.get(key);
     if (!model) {

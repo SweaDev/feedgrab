@@ -1,5 +1,5 @@
 import { isElement } from '../env/dom';
-import { FeedDetectorError } from '../errors';
+import { FeedgrabError } from '../errors';
 import type { FeedDescriptor, Selector } from '../types';
 import { getXPathEngine } from './xpath';
 
@@ -20,7 +20,7 @@ function evaluateXPath(value: string, context: Document | Element): Node[] {
   }
   const engine = getXPathEngine();
   if (!engine) {
-    throw new FeedDetectorError('XPATH_UNSUPPORTED', 'No XPath support in this document', {
+    throw new FeedgrabError('XPATH_UNSUPPORTED', 'No XPath support in this document', {
       selector: value,
     });
   }
@@ -36,8 +36,8 @@ export function evaluateSelector(sel: Selector, context: Document | Element): El
     if (sel.type === 'css') return Array.from(context.querySelectorAll(sel.value));
     return evaluateXPath(sel.value, context).filter(isElement);
   } catch (e) {
-    if (e instanceof FeedDetectorError) throw e;
-    throw new FeedDetectorError('INVALID_SELECTOR', `Invalid ${sel.type} selector: ${sel.value}`, {
+    if (e instanceof FeedgrabError) throw e;
+    throw new FeedgrabError('INVALID_SELECTOR', `Invalid ${sel.type} selector: ${sel.value}`, {
       selector: sel,
       cause: e,
     });

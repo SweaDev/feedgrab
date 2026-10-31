@@ -7,7 +7,7 @@ intentionally differs from the plan). `README.md` is the user-facing API doc.
 
 ## What this is
 
-`feed-detector` is a TypeScript library (Bun for tooling, ESM, MIT). It **finds and describes**
+`feedgrab` is a TypeScript library (Bun for tooling, ESM, MIT). It **finds and describes**
 repeating content feeds in a `Document` (timelines, search results, product grids), lets a user
 confirm them in a Shadow-DOM overlay, and iterates one de-duplicated **unified feed** with a report
 per item (`kept` / `excluded` / `pending`). It runs unchanged in three modes: browser extension
@@ -28,7 +28,7 @@ content script, headless browser (injected IIFE bundle), and server (Bun/Node + 
 | `bun run test:e2e:ext` | Extension smoke test only (Chromium) |
 | `bun run smoke:node` | Build, then import `dist/` under Node ≥ 20 |
 | `bun run test:live` | Real-LLM tests; skipped unless `FD_LLM_MODEL` is set |
-| `bun run --filter feed-detector-example-extension build` / `build:firefox` | Example WXT extension (run the root `build` first, because it consumes `dist/`) |
+| `bun run --filter feedgrab-example-extension build` / `build:firefox` | Example WXT extension (run the root `build` first, because it consumes `dist/`) |
 | `bun run check:all` | Everything above that CI runs |
 
 The full Definition of Done (as in CI, `.github/workflows/ci.yml`) is: `check`, `build`, `node
@@ -43,7 +43,7 @@ Layers: imports point **downward only**, with no cycles (PLAN §3.2).
 
 | Layer | Modules | Responsibility |
 |---|---|---|
-| L0 | `types.ts`, `errors.ts`, `env/{dom,hash,text,timers}.ts` | All public types; `FeedDetectorError` + `ErrorCode`; `getWindow`, `hasLayout`, `isElement`; FNV-1a `hashString`; `normalizeText`; stubbable `timers` |
+| L0 | `types.ts`, `errors.ts`, `env/{dom,hash,text,timers}.ts` | All public types; `FeedgrabError` + `ErrorCode`; `getWindow`, `hasLayout`, `isElement`; FNV-1a `hashString`; `normalizeText`; stubbable `timers` |
 | L1 | `selector/{evaluate,match,generate,xpath}.ts` | CSS/XPath evaluation, `validateSelector`/`matchSelector`, deterministic in-house selector generation (no finder library), XPath engine registry |
 | L1 | `signature/{classes,signature}.ts` | Stable-class filter (rejects hashed/Tailwind/state classes), `sigL1`/`sigL2`, "same kind" |
 | L1 | `profile/{schema,normalize,migrate,profile,match}.ts` | zod/mini profile schema, rule id normalization (`r_<hash>`), serialize/parse/migrate, `matchProfile` specificity |
@@ -60,7 +60,7 @@ structured-output call), `prompts.ts`, `config.ts` (`FD_LLM_*` env), `models.ts`
 with injected provider factories), and `run-model.ts` / `run-model.stub.ts`.
 
 Package entry points (`package.json` `exports`): `.` → `src/index.ts`, `./overlay`, `./server`,
-`./llm`, `./llm/providers`, and `./browser` (IIFE, global `FeedDetector`, no `.d.ts`).
+`./llm`, `./llm/providers`, and `./browser` (IIFE, global `Feedgrab`, no `.d.ts`).
 
 ## Hard rules (the tests or the bundle break if you violate them)
 
@@ -72,13 +72,13 @@ Package entry points (`package.json` `exports`): `.` → `src/index.ts`, `./over
   all read from `getWindow(doc)`) and the `MutationObserver` in `feed/observer.ts`.
 - **Node type checks are numeric** (`node.nodeType === 1`, `isElement`), never `instanceof`.
   Elements may come from happy-dom or another realm.
-- **Public APIs throw only `FeedDetectorError`** with a code from the `ErrorCode` union in
-  `errors.ts`. Wrap foreign errors with `toFeedDetectorError`. If you need a new code, add it to the
+- **Public APIs throw only `FeedgrabError`** with a code from the `ErrorCode` union in
+  `errors.ts`. Wrap foreign errors with `toFeedgrabError`. If you need a new code, add it to the
   union and log it in NOTES-01.
 - **Read-only invariant.** Detection, the overlay, iteration, and `ingest` must never mutate the
   page DOM. Only `removeItem`/`removeParts` do, marking nodes with `data-fd-removed`.
   `tests/unit/feed/readonly.test.ts` compares DOM snapshots on every fixture. The overlay adds
-  exactly one node, `<div data-feed-detector-overlay>` with an open shadow root (no custom
+  exactly one node, `<div data-feedgrab-overlay>` with an open shadow root (no custom
   elements).
 - **Determinism.** Heuristic output must be identical for the same DOM, in Bun and in browsers.
   Sort with explicit tie-breakers (score, then document order), round scores to 4 decimals, and
@@ -126,7 +126,7 @@ Package entry points (`package.json` `exports`): `.` → `src/index.ts`, `./over
   rescues an item from an exclude of lower rank, or of equal rank with specificity ≤ its own, and
   sets `rescuedBy`. Rescued items are never sent to the LLM. A builtin match on the item itself
   excludes the item; a match on a descendant is reported as a part.
-- **`live` default.** `parseHtml` tags documents with `Symbol.for('feed-detector.parsed')`, which
+- **`live` default.** `parseHtml` tags documents with `Symbol.for('feedgrab.parsed')`, which
   makes them `live: false`; otherwise feeds are live. One `MutationObserver` on
   `doc.documentElement` coalesces records per microtask into `processBatch()` (target < 5 ms).
   Re-attached items emit `item:updated`, not `item:added`. A container that stays missing for
@@ -184,7 +184,7 @@ Package entry points (`package.json` `exports`): `.` → `src/index.ts`, `./over
 
 ## Known environment gotchas
 
-- The example extension resolves `feed-detector` from the workspace's built `dist/`, so run
+- The example extension resolves `feedgrab` from the workspace's built `dist/`, so run
   `bun run build` first. Its content script bundles the lazy `run-model` chunk anyway (Vite inlines
   dynamic imports), which is accepted for the example.
 - Chromium (Playwright 1.64) ignores `--load-extension`. `tests/e2e/extension.spec.ts` loads the

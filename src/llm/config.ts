@@ -1,5 +1,5 @@
 import { z } from 'zod/mini';
-import { FeedDetectorError } from '../errors';
+import { FeedgrabError } from '../errors';
 
 /** zod schema for `LlmConfig`. */
 export const LlmConfigSchema = z.object({
@@ -42,7 +42,7 @@ export function readEnvConfig(
   };
   const parsed = LlmConfigSchema.safeParse(raw);
   if (!parsed.success) {
-    throw new FeedDetectorError('LLM_CONFIG', 'Invalid LLM configuration', {
+    throw new FeedgrabError('LLM_CONFIG', 'Invalid LLM configuration', {
       issues: parsed.error.issues,
     });
   }

@@ -1,5 +1,5 @@
 import type { LanguageModel } from 'ai';
-import { toFeedDetectorError } from '../errors';
+import { toFeedgrabError } from '../errors';
 import type { LlmBackend } from '../types';
 import type { LlmRequest, ResponseFor } from './contract';
 import { validateResponse } from './proxy';
@@ -21,7 +21,7 @@ export function resolveBackend(b: LlmBackend): ResolvedBackend {
       try {
         res = await b(req, opts);
       } catch (e) {
-        throw toFeedDetectorError(e, 'LLM_UNAVAILABLE');
+        throw toFeedgrabError(e, 'LLM_UNAVAILABLE');
       }
       return validateResponse(req.task, res) as never;
     };

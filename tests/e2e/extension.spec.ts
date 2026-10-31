@@ -8,7 +8,7 @@ const EXT = join(ROOT, 'examples/extension/.output/chrome-mv3');
 let context: BrowserContext;
 
 test.beforeAll(async () => {
-  const build = spawnSync('bun', ['run', '--filter', 'feed-detector-example-extension', 'build'], {
+  const build = spawnSync('bun', ['run', '--filter', 'feedgrab-example-extension', 'build'], {
     cwd: ROOT,
     env: { ...process.env, FD_E2E: '1' },
     encoding: 'utf8',
@@ -34,7 +34,7 @@ test.afterAll(async () => {
 test('detect → overlay → save → reload hides the builtin-excluded posts', async ({ baseURL }) => {
   const page = await context.newPage();
   await page.goto(`${baseURL}/social-feed.html`);
-  const host = page.locator('[data-feed-detector-overlay]');
+  const host = page.locator('[data-feedgrab-overlay]');
   // The content script loads at document_idle; post until it answers with the overlay.
   await expect
     .poll(

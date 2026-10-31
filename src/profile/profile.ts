@@ -1,4 +1,4 @@
-import { FeedDetectorError } from '../errors';
+import { FeedgrabError } from '../errors';
 import type { FeedDescriptor, SiteProfile } from '../types';
 import { migrate } from './migrate';
 import { normalizeDescriptor, stableJson } from './normalize';
@@ -36,14 +36,14 @@ export function parseProfile(s: string): SiteProfile {
   try {
     raw = JSON.parse(s);
   } catch (e) {
-    throw new FeedDetectorError('INVALID_PROFILE', 'Profile is not valid JSON', {
+    throw new FeedgrabError('INVALID_PROFILE', 'Profile is not valid JSON', {
       issues: [],
       cause: e,
     });
   }
   const parsed = SiteProfileV1Schema.safeParse(migrate(raw));
   if (!parsed.success) {
-    throw new FeedDetectorError('INVALID_PROFILE', 'Profile does not match the schema', {
+    throw new FeedgrabError('INVALID_PROFILE', 'Profile does not match the schema', {
       issues: parsed.error.issues,
     });
   }

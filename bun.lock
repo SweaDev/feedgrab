@@ -35,14 +35,14 @@
       ],
     },
     "examples/extension": {
-      "name": "feed-detector-example-extension",
+      "name": "feedgrab-example-extension",
       "version": "0.1.0",
       "dependencies": {
         "@ai-sdk/google": "^4",
         "@ai-sdk/openai": "^4",
         "@ai-sdk/openai-compatible": "^3",
         "@openrouter/ai-sdk-provider": "^3",
-        "feed-detector": "workspace:*",
+        "feedgrab": "workspace:*",
       },
       "devDependencies": {
         "wxt": "^0.21.5",
@@ -288,9 +288,9 @@
 
     "fdir": ["fdir@6.5.0", "", { "peerDependencies": { "picomatch": "^3 || ^4" }, "optionalPeers": ["picomatch"] }, "sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg=="],
 
-    "feed-detector": ["@root:", {}],
+    "feedgrab": ["@root:", {}],
 
-    "feed-detector-example-extension": ["feed-detector-example-extension@workspace:examples/extension"],
+    "feedgrab-example-extension": ["feedgrab-example-extension@workspace:examples/extension"],
 
     "filesize": ["filesize@11.0.29", "", {}, "sha512-+Mkmp8keoklLzAnvP/RQGDUEWEpjGmhvm4d4U739C1ZnkqxqoSqdLHnjv9/4QX6lltKSRk6qzQI7+94JVDtuCA=="],
 

@@ -1,4 +1,4 @@
-import { type FeedDetectorError, toFeedDetectorError } from '../errors';
+import { type FeedgrabError, toFeedgrabError } from '../errors';
 import type { FeedEvents, FeedListener } from '../types';
 
 type AnyListener = (...args: unknown[]) => void;
@@ -38,7 +38,7 @@ export class Emitter {
         fn(...args);
       } catch (e) {
         if (evt === 'feed:error') continue;
-        const error: FeedDetectorError = toFeedDetectorError(e, 'LISTENER_ERROR');
+        const error: FeedgrabError = toFeedgrabError(e, 'LISTENER_ERROR');
         this.emit('feed:error', { error });
       }
     }

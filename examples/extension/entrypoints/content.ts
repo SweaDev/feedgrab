@@ -2,15 +2,15 @@ import {
   createLlmProxy,
   detectFeeds,
   type ErrorCode,
-  FeedDetectorError,
+  FeedgrabError,
   type FeedItem,
   matchProfile,
   openFeed,
   type RemovalHandle,
   removeItem,
   type UnifiedFeed,
-} from 'feed-detector';
-import { openOverlay } from 'feed-detector/overlay';
+} from 'feedgrab';
+import { openOverlay } from 'feedgrab/overlay';
 import { browser } from 'wxt/browser';
 import { defineContentScript } from 'wxt/utils/define-content-script';
 import { isMessage, sendToBackground } from '../lib/messages';
@@ -27,7 +27,7 @@ export default defineContentScript({
       createLlmProxy(async (req) => {
         const reply = await sendToBackground({ type: 'fd:llm', req });
         if (!reply.ok) {
-          throw new FeedDetectorError(
+          throw new FeedgrabError(
             (reply.error.code as ErrorCode) ?? 'LLM_UNAVAILABLE',
             reply.error.message,
           );
@@ -76,8 +76,8 @@ export default defineContentScript({
         });
         await saveProfile(profile);
       } catch (e) {
-        if (!(e instanceof FeedDetectorError && e.code === 'OVERLAY_CANCELLED'))
-          console.warn('[feed-detector]', e);
+        if (!(e instanceof FeedgrabError && e.code === 'OVERLAY_CANCELLED'))
+          console.warn('[feedgrab]', e);
       }
       await start();
     }

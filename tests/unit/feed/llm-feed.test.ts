@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { detectFeeds } from '../../../src/detect/detect';
-import type { FeedDetectorError } from '../../../src/errors';
+import type { FeedgrabError } from '../../../src/errors';
 import { openFeed } from '../../../src/feed/unified-feed';
 import type { ClassifyRequest } from '../../../src/llm/contract';
 import { createProfile } from '../../../src/profile/profile';
@@ -69,7 +69,7 @@ test('classifier errors → feed:error and items kept', async () => {
     throw new Error('down');
   });
   const { feed } = await setup(llm);
-  const errors: FeedDetectorError[] = [];
+  const errors: FeedgrabError[] = [];
   feed.on('feed:error', ({ error }) => errors.push(error));
   await wait(600);
   expect(llm.calls.length).toBe(2);

@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { detectFeeds } from '../../../src/detect/detect';
-import type { FeedDetectorError } from '../../../src/errors';
+import type { FeedgrabError } from '../../../src/errors';
 import { loadFixture } from '../../helpers/dom';
 import { fnBackend } from '../../helpers/mock-llm';
 
@@ -74,7 +74,7 @@ test('an invalid exclusion is dropped while the feed is kept', async () => {
 test('backend throws → heuristic result and onLlmError', async () => {
   const doc = loadFixture('two-feeds');
   const heuristic = await detectFeeds(doc);
-  const errors: FeedDetectorError[] = [];
+  const errors: FeedgrabError[] = [];
   const out = await detectFeeds(doc, {
     llm: fnBackend(() => {
       throw new Error('offline');
@@ -88,7 +88,7 @@ test('backend throws → heuristic result and onLlmError', async () => {
 
 test('invalid response shape → heuristic and LLM_INVALID_RESPONSE', async () => {
   const doc = loadFixture('two-feeds');
-  const errors: FeedDetectorError[] = [];
+  const errors: FeedgrabError[] = [];
   const out = await detectFeeds(doc, {
     llm: fnBackend(() => ({ nope: 1 })),
     onLlmError: (e) => errors.push(e),

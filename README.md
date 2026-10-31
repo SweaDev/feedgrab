@@ -1,4 +1,4 @@
-# Feed Detector
+# Feedgrab
 
 A TypeScript library that **finds and describes content feeds** in web pages (post timelines,
 search results, product grids, article lists) and turns them into one de-duplicated stream of
@@ -18,7 +18,7 @@ injected bundle), and **server-side** (Bun/Node with a parsed DOM), using the sa
 ## Install
 
 ```sh
-bun add feed-detector        # or npm i feed-detector
+bun add feedgrab        # or npm i feedgrab
 ```
 
 Optional peer dependencies, install only what you use:
@@ -35,20 +35,20 @@ Optional peer dependencies, install only what you use:
 
 | Import | Contents |
 |---|---|
-| `feed-detector` | Core: detection, profiles, unified feed, removal helpers, `createLlmProxy` |
-| `feed-detector/overlay` | `openOverlay`, `pickElement`, `DEFAULT_THEME`, `themeToCss` |
-| `feed-detector/server` | `parseHtml`, `disposeDocument` (happy-dom) |
-| `feed-detector/llm` | `handleLlmRequest`, `createModel`, `createModelFromEnv`, `readEnvConfig` |
-| `feed-detector/llm/providers` | `allProviders` (statically imports the four provider packages) |
-| `feed-detector/browser` | Prebuilt IIFE exposing a `FeedDetector` global (core + overlay) |
+| `feedgrab` | Core: detection, profiles, unified feed, removal helpers, `createLlmProxy` |
+| `feedgrab/overlay` | `openOverlay`, `pickElement`, `DEFAULT_THEME`, `themeToCss` |
+| `feedgrab/server` | `parseHtml`, `disposeDocument` (happy-dom) |
+| `feedgrab/llm` | `handleLlmRequest`, `createModel`, `createModelFromEnv`, `readEnvConfig` |
+| `feedgrab/llm/providers` | `allProviders` (statically imports the four provider packages) |
+| `feedgrab/browser` | Prebuilt IIFE exposing a `Feedgrab` global (core + overlay) |
 
 ## Quick start
 
 ### Browser extension (content script)
 
 ```ts
-import { createLlmProxy, detectFeeds, matchProfile, openFeed, removeItem } from 'feed-detector';
-import { openOverlay } from 'feed-detector/overlay';
+import { createLlmProxy, detectFeeds, matchProfile, openFeed, removeItem } from 'feedgrab';
+import { openOverlay } from 'feedgrab/overlay';
 
 // The page never holds API keys: LLM calls go to the background (see "LLM configuration").
 const llm = createLlmProxy(async (req) => {
@@ -75,8 +75,8 @@ if (match) {
 In the background service worker:
 
 ```ts
-import { createModel, handleLlmRequest, readEnvConfig } from 'feed-detector/llm';
-import { allProviders } from 'feed-detector/llm/providers';
+import { createModel, handleLlmRequest, readEnvConfig } from 'feedgrab/llm';
+import { allProviders } from 'feedgrab/llm/providers';
 
 const model = createModel(readEnvConfig(import.meta.env)!, allProviders);
 browser.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
@@ -97,19 +97,19 @@ A complete WXT example (popup, options page, background proxy, content script) l
 ```ts
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
-import { createModelFromEnv, handleLlmRequest } from 'feed-detector/llm';
-import { allProviders } from 'feed-detector/llm/providers';
+import { createModelFromEnv, handleLlmRequest } from 'feedgrab/llm';
+import { allProviders } from 'feedgrab/llm/providers';
 
 const model = createModelFromEnv(allProviders); // FD_LLM_* from the environment
 const page = await (await chromium.launch()).newPage();
 await page.exposeFunction('fdLlm', (req: unknown) => handleLlmRequest(req, model));
 await page.goto('https://example.com/feed');
-await page.addScriptTag({ path: fileURLToPath(import.meta.resolve('feed-detector/browser')) });
+await page.addScriptTag({ path: fileURLToPath(import.meta.resolve('feedgrab/browser')) });
 
 const items = await page.evaluate(async () => {
-  const llm = FeedDetector.createLlmProxy((req) => window.fdLlm(req));
-  const feeds = await FeedDetector.detectFeeds(document, { llm });
-  const feed = FeedDetector.openFeed(document, FeedDetector.createProfile({ url: location.href, feeds }), { llm });
+  const llm = Feedgrab.createLlmProxy((req) => window.fdLlm(req));
+  const feeds = await Feedgrab.detectFeeds(document, { llm });
+  const feed = Feedgrab.openFeed(document, Feedgrab.createProfile({ url: location.href, feeds }), { llm });
   // ...scroll the page from Playwright; the observer picks up new items...
   return feed.items().map((i) => ({ id: i.id, status: i.status }));
 });
@@ -121,10 +121,10 @@ page throws `LLM_MODEL_UNSUPPORTED_IN_BUNDLE`.
 ### Server (Bun/Node)
 
 ```ts
-import { createProfile, detectFeeds, openFeed } from 'feed-detector';
-import { createModelFromEnv } from 'feed-detector/llm';
-import { allProviders } from 'feed-detector/llm/providers';
-import { disposeDocument, parseHtml } from 'feed-detector/server';
+import { createProfile, detectFeeds, openFeed } from 'feedgrab';
+import { createModelFromEnv } from 'feedgrab/llm';
+import { allProviders } from 'feedgrab/llm/providers';
+import { disposeDocument, parseHtml } from 'feedgrab/server';
 
 const url = 'https://example.com/list?page=1';
 const doc = parseHtml(await (await fetch(url)).text(), url); // scripts are never executed
@@ -176,7 +176,7 @@ disposeDocument(doc);
 | `serializeProfile(p)` / `parseProfile(s)` | core | Stable JSON / validated + migrated parse. |
 | `createLlmProxy(send)` | core | Page-side LLM backend that forwards requests and validates responses. |
 | `registerXPathEngine(engine)` | core | XPath fallback for DOMs without `document.evaluate`. |
-| `BUILTIN_RULES`, `CURRENT_PROFILE_VERSION`, `FeedDetectorError` | core | Constants and the error class (`code`, `details`). |
+| `BUILTIN_RULES`, `CURRENT_PROFILE_VERSION`, `FeedgrabError` | core | Constants and the error class (`code`, `details`). |
 | `openOverlay(doc, proposals, opts?)` | overlay | Confirm/edit UI; resolves with a `SiteProfile`. |
 | `pickElement(doc, { filter?, signal? })` | overlay | Let the user click an element. |
 | `parseHtml(html, url?)` / `disposeDocument(doc)` | server | Parse HTML with happy-dom (no scripts, no resource loading). |
@@ -219,7 +219,7 @@ openOverlay(document, proposals, {
 ```
 
 The theme becomes `--fd-*` custom properties on the shadow root's `:host`. The overlay lives in a
-single `<div data-feed-detector-overlay>` with an open shadow root, draws outlines over the page,
+single `<div data-feedgrab-overlay>` with an open shadow root, draws outlines over the page,
 and never changes feed nodes.
 
 ## Read-only guarantee
@@ -237,7 +237,7 @@ on every fixture by comparing DOM snapshots. The page changes only when **you** 
 | `bun run test:e2e` | Playwright: Bun/browser parity, live scroll, overlay, theme (Chromium + Firefox) and the extension smoke test (Chromium) |
 | `bun run test:live` | Opt-in tests against a real model (skipped unless `FD_LLM_MODEL` is set) |
 | `bun run smoke:node` | Build, then run the built package under Node |
-| `bun run --filter feed-detector-example-extension build` / `build:firefox` | Example extension |
+| `bun run --filter feedgrab-example-extension build` / `build:firefox` | Example extension |
 
 Specs and implementation notes are in [`spec/`](spec/).
 

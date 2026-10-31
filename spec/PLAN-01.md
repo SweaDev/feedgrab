@@ -1,4 +1,4 @@
-# PLAN-01: Feed Detector — Implementation Plan
+# PLAN-01: Feedgrab — Implementation Plan
 
 Status: Approved · Date: 2026-10-30 · Implements: `spec/SPEC-01.md` · Tasks: `spec/TASKS-01.md`
 
@@ -8,7 +8,7 @@ Each section is self-contained, so tasks cite only the line ranges they need.
 ## 1. Decisions & conventions
 
 ### 1.1 Binding decisions (from the project owner)
-- Package name `feed-detector`, license **MIT** (copyright "2026 Fayaz Ahmed").
+- Package name `feedgrab`, license **MIT** (copyright "2026 Fayaz Ahmed").
 - Runtime/tooling: **Bun** (1.4.x) for install, build, and unit tests. Node ≥ 20 must be able to import `dist/`.
 - Lint and format: **Biome**. TypeScript is `strict`.
 - Fixtures are **synthetic** HTML pages written for this repo. No real-site snapshots.
@@ -36,7 +36,7 @@ Each section is self-contained, so tasks cite only the line ranges they need.
 - **No DOM globals in `src/`**, apart from the browser-only paths that §3.3 allows. Get the window with `getWindow(doc)` (§5.1). Use JS globals (`URL`, `setTimeout`, `queueMicrotask`, `AbortController`, `structuredClone`) only through `globalThis`, which exists in all runtimes.
 - Check node types numerically (`node.nodeType === 1`), never with `instanceof HTMLElement`, because elements may come from another realm or from happy-dom.
 - Public functions have JSDoc. Internal helpers don't need it.
-- Throw only `FeedDetectorError` (§5.0) from public APIs.
+- Throw only `FeedgrabError` (§5.0) from public APIs.
 - Tests sit next to their area under `tests/unit/<area>/*.test.ts`. They never register a global DOM; they build documents with `parseHtml` or `loadFixture` (§6.2).
 
 ## 2. Spec clarifications & deviations (authoritative)
@@ -49,20 +49,20 @@ Each section is self-contained, so tasks cite only the line ranges they need.
    - `Rule` gets optional `id?: string` (auto-filled as `r_<hash>`) and `origin?: 'user' | 'llm'` (default `'user'`). Built-in rules are not stored in descriptors.
    - `include: Rule[]` uses the same type. Only `selector` rules are valid in `include`.
    - `FeedItem` gets `connected: boolean` (false after the element leaves the DOM) and `rescuedBy?: RuleRef` (set when an include rule kept the item).
-   - New event: `feed:error` (payload `{ feedId?: string; error: FeedDetectorError }`).
+   - New event: `feed:error` (payload `{ feedId?: string; error: FeedgrabError }`).
 3. **LLM entry points.**
-   - The core (`feed-detector`) exports `createLlmProxy(send)`. `LlmBackend = LanguageModel | LlmProxyFn`.
+   - The core (`feedgrab`) exports `createLlmProxy(send)`. `LlmBackend = LanguageModel | LlmProxyFn`.
    - When the core is given a `LanguageModel`, it **lazily** imports `src/llm/run-model.ts`, which imports `ai`. `ai` is therefore a regular dependency.
-   - A new entry, `feed-detector/llm`, exports:
+   - A new entry, `feedgrab/llm`, exports:
      - `handleLlmRequest(req, model, opts?)`,
      - `createModel(config, providers)` and `createModelFromEnv(providers, env?)`. These are **synchronous** and take provider factories by **dependency injection**, so bundlers never need to resolve provider packages that aren't installed.
      - `readEnvConfig(env?)`.
-   - A new entry, `feed-detector/llm/providers`, exports `allProviders`. It statically imports the four provider packages, which are optional peers.
+   - A new entry, `feedgrab/llm/providers`, exports `allProviders`. It statically imports the four provider packages, which are optional peers.
 4. **Server entry additions:**
    - `disposeDocument(doc)` closes the happy-dom window behind a parsed document.
    - `registerXPathEngine(engine)` lives in the core. The server entry registers the `xpath` package as the engine when `doc.evaluate` is missing.
 5. **Default for `live`.**
-   - `parseHtml` tags the document with `Symbol.for('feed-detector.parsed')`. `openFeed` sets `live` to false when that tag is present, and to true otherwise.
+   - `parseHtml` tags the document with `Symbol.for('feedgrab.parsed')`. `openFeed` sets `live` to false when that tag is present, and to true otherwise.
    - `observe` follows `live`.
 6. **Built-in selector rules.**
    - A match on the **item element itself** excludes the item.
@@ -70,23 +70,23 @@ Each section is self-contained, so tasks cite only the line ranges they need.
    - Text labels such as "Sponsored" are left to LLM text rules (no regex, per SPEC §8).
 7. **Placeholders.** An item with no permalink and fewer than `minItemTextLength` characters of text (default 10) is tracked but **not emitted**. It is re-checked on mutations inside it. This covers skeleton loaders.
 8. **Overlay host.**
-   - The host is a plain `<div data-feed-detector-overlay>` with an **open** shadow root, appended to `doc.documentElement`.
+   - The host is a plain `<div data-feedgrab-overlay>` with an **open** shadow root, appended to `doc.documentElement`.
    - No custom elements, because `customElements` is null in Chrome content scripts.
    - The overlay never changes feed nodes. Its listeners use the capture phase and are removed on close.
 9. **Removal marker.** Removal helpers set `data-fd-removed="item" | "part"`. `restore()` returns `boolean` (false if the node can no longer be restored).
-10. **The browser IIFE bundle** (`feed-detector/browser`) contains the core and the overlay. It accepts only the proxy form of `LlmBackend`. Passing a `LanguageModel` throws `FeedDetectorError('LLM_MODEL_UNSUPPORTED_IN_BUNDLE')`.
+10. **The browser IIFE bundle** (`feedgrab/browser`) contains the core and the overlay. It accepts only the proxy form of `LlmBackend`. Passing a `LanguageModel` throws `FeedgrabError('LLM_MODEL_UNSUPPORTED_IN_BUNDLE')`.
 11. **Spec text left to T39:** T39 updates the SPEC §10 sketch to match the items above.
 
 ## 3. Architecture
 
 ### 3.1 Repository layout
 ```
-feed-detector/
+feedgrab/
 ├─ package.json  tsconfig.json  tsconfig.build.json  biome.json  bunfig.toml
 ├─ .env.example  .gitignore  LICENSE  README.md
 ├─ scripts/        build.ts  node-smoke.mjs  check-size.ts
 ├─ src/
-│  ├─ index.ts            # core public API ("feed-detector")
+│  ├─ index.ts            # core public API ("feedgrab")
 │  ├─ types.ts  errors.ts
 │  ├─ env/        dom.ts  hash.ts  text.ts  timers.ts
 │  ├─ selector/   evaluate.ts  xpath.ts  generate.ts  match.ts
@@ -97,10 +97,10 @@ feed-detector/
 │  ├─ cleanup/    remove.ts
 │  ├─ profile/    schema.ts  normalize.ts  profile.ts  match.ts  migrate.ts
 │  ├─ llm/        contract.ts  proxy.ts  backend.ts  run-model.ts  run-model.stub.ts  structured.ts  prompts.ts  config.ts  models.ts
-│  │              index.ts (entry "feed-detector/llm")  providers.ts (entry "feed-detector/llm/providers")
-│  ├─ overlay/    index.ts (entry "feed-detector/overlay")  host.ts  theme.ts  styles.ts  highlighter.ts  picker.ts  state.ts  panel.ts  h.ts  open-overlay.ts
-│  ├─ server.ts           # entry "feed-detector/server"
-│  └─ browser.ts          # IIFE entry "feed-detector/browser" (global FeedDetector)
+│  │              index.ts (entry "feedgrab/llm")  providers.ts (entry "feedgrab/llm/providers")
+│  ├─ overlay/    index.ts (entry "feedgrab/overlay")  host.ts  theme.ts  styles.ts  highlighter.ts  picker.ts  state.ts  panel.ts  h.ts  open-overlay.ts
+│  ├─ server.ts           # entry "feedgrab/server"
+│  └─ browser.ts          # IIFE entry "feedgrab/browser" (global Feedgrab)
 ├─ tests/
 │  ├─ fixtures/   *.html  *.expected.json  README.md
 │  ├─ helpers/    dom.ts  mock-llm.ts  snapshot.ts
@@ -148,7 +148,7 @@ Each subpath has `{ "types": "./dist/types/<path>.d.ts", "import": "./dist/<path
 - **dependencies**: `zod` (v4; schemas use the tree-shakable `zod/mini` API so the IIFE bundle stays under 120 KB), `ai` (latest stable major), `xpath`.
 - **peerDependencies** (all marked optional in `peerDependenciesMeta`): `happy-dom`, `@ai-sdk/openai-compatible`, `@ai-sdk/openai`, `@ai-sdk/google`, `@openrouter/ai-sdk-provider`.
 - **devDependencies**: `typescript`, `@biomejs/biome`, `@types/bun`, `happy-dom`, the four provider packages, `@playwright/test`.
-- The example extension has its own `package.json` with `wxt` and `"feed-detector": "workspace:*"`. The root `package.json` sets `"workspaces": ["examples/*"]`.
+- The example extension has its own `package.json` with `wxt` and `"feedgrab": "workspace:*"`. The root `package.json` sets `"workspaces": ["examples/*"]`.
 
 ### 4.2 Config files
 - `tsconfig.json`:
@@ -174,7 +174,7 @@ Each subpath has `{ "types": "./dist/types/<path>.d.ts", "import": "./dist/<path
 | `test:e2e` | `bun run build && playwright test` |
 | `test:live` | `bun test tests/live` |
 | `check` | `bun run lint && bun run typecheck && bun run test` |
-| `check:all` | `bun run check && bun run build && bun run test:e2e && bun run --filter feed-detector-example-extension build` |
+| `check:all` | `bun run check && bun run build && bun run test:e2e && bun run --filter feedgrab-example-extension build` |
 
 ### 4.4 `scripts/build.ts`
 1. Delete `dist/`.
@@ -201,7 +201,7 @@ Each subpath has `{ "types": "./dist/types/<path>.d.ts", "import": "./dist/<path
   Use the shapes from SPEC §10 plus §2 of this plan. Types only, no runtime code apart from `const` enums-as-unions.
 - `ExclusionMatch = { ruleId: string; origin: 'builtin' | 'user' | 'llm'; kind: 'selector' | 'llm-text' | 'signature-outlier'; selector?: Selector; criteria?: string; confidence?: number; element?: Element }`.
 - `PartMatch = { element: Element; rule: RuleRef }`, with `RuleRef = { ruleId: string; origin: 'builtin' | 'user' | 'llm' }`.
-- `errors.ts`: `class FeedDetectorError extends Error { code: ErrorCode; details?: unknown }`. The `ErrorCode` union:
+- `errors.ts`: `class FeedgrabError extends Error { code: ErrorCode; details?: unknown }`. The `ErrorCode` union:
   - `INVALID_SELECTOR`, `NO_MATCH`, `NO_REPEATING_ANCESTOR`, `INVALID_PROFILE`, `UNSUPPORTED_PROFILE_VERSION`;
   - `LLM_UNAVAILABLE`, `LLM_BAD_REQUEST`, `LLM_INVALID_RESPONSE`, `LLM_MODEL_UNSUPPORTED_IN_BUNDLE`, `LLM_CONFIG`, `LLM_PROVIDER_MISSING`;
   - `OVERLAY_CANCELLED`, `OVERLAY_NO_LAYOUT`, `DISPOSED`, `XPATH_UNSUPPORTED`;
@@ -485,7 +485,7 @@ Each subpath has `{ "types": "./dist/types/<path>.d.ts", "import": "./dist/<path
   - `generateStructured({ model, schema, system, prompt, signal })`. Use the API the installed `ai` major recommends: `generateObject` in v5, or `generateText` with `output: Output.object({ schema })` where that is preferred.
   - `temperature: 0`.
   - On a schema failure, retry **once**, appending "Your previous answer was invalid: <zod issues>. Return valid JSON only." If that fails too → `LLM_INVALID_RESPONSE`.
-- **`index.ts`** (entry `feed-detector/llm`):
+- **`index.ts`** (entry `feedgrab/llm`):
   - `handleLlmRequest(req: unknown, model, opts?)` parses `req` with `LlmRequest` (throws `LLM_BAD_REQUEST` when it is malformed), dispatches on `task`, and returns a plain JSON response.
   - It also re-exports `createModel`, `createModelFromEnv`, `readEnvConfig`, and the types.
 - **`config.ts`**:
@@ -537,7 +537,7 @@ Each subpath has `{ "types": "./dist/types/<path>.d.ts", "import": "./dist/<path
   - `themeToCss(theme)` produces a `:host { --fd-color-feed: …; … }` block.
 - **`styles.ts`** holds the base CSS. It uses **only** the `--fd-*` variables, is scoped to the shadow root, and is followed by `customCss`.
 - **`host.ts`**: `mountHost(doc, { theme, customCss })` returns `{ host, root, layer, panel, unmount }`:
-  - `host` is a `<div data-feed-detector-overlay>` with `position: fixed; inset: 0; pointer-events: none; z-index: var(--fd-z)` set inline. This is the only node added to the page.
+  - `host` is a `<div data-feedgrab-overlay>` with `position: fixed; inset: 0; pointer-events: none; z-index: var(--fd-z)` set inline. This is the only node added to the page.
   - The shadow root contains `<style>`, a highlight `layer`, and the `panel` (`pointer-events: auto`).
 - **`highlighter.ts`**: `createHighlighter(doc, layer)` with `.set(entries: { el, kind: 'feed' | 'item' | 'excluded' | 'pending' | 'part', label? }[])`, `.refresh()`, and `.destroy()`:
   - it draws a fixed-position box per element from `getBoundingClientRect()`;
@@ -569,7 +569,7 @@ Each subpath has `{ "types": "./dist/types/<path>.d.ts", "import": "./dist/<path
 
 ### 5.18 Server entry (`src/server.ts`)
 - `parseHtml(html, url = 'about:blank')`:
-  - `new Window({ url, settings: { disableJavaScriptEvaluation: true, disableJavaScriptFileLoading: true, disableCSSFileLoading: true, disableIframePageLoading: true, disableComputedStyleRendering: true, navigator: { userAgent: 'feed-detector' } } })`. Adapt the setting names to the installed happy-dom version and log the change in NOTES-01.
+  - `new Window({ url, settings: { disableJavaScriptEvaluation: true, disableJavaScriptFileLoading: true, disableCSSFileLoading: true, disableIframePageLoading: true, disableComputedStyleRendering: true, navigator: { userAgent: 'feedgrab' } } })`. Adapt the setting names to the installed happy-dom version and log the change in NOTES-01.
   - `doc = window.document`, then `doc.write(html)` or `new window.DOMParser().parseFromString(html, 'text/html')`; pick whichever keeps `doc.URL === url`.
   - Tag the document with the parsed symbol (§2.5).
   - If `typeof doc.evaluate !== 'function'` or a probe fails, register the `xpath` engine (`xpath.select(expr, node)`) once.
@@ -578,7 +578,7 @@ Each subpath has `{ "types": "./dist/types/<path>.d.ts", "import": "./dist/<path
 - It re-exports nothing else. Consumers import the core separately.
 
 ### 5.19 Browser bundle (`src/browser.ts`)
-- `import * as core from './index'; import * as overlay from './overlay/index'; (globalThis as any).FeedDetector = { ...core, ...overlay, version };`
+- `import * as core from './index'; import * as overlay from './overlay/index'; (globalThis as any).Feedgrab = { ...core, ...overlay, version };`
 - `version` comes from `package.json` (JSON import).
 - The build replaces `run-model` with the stub (§4.4).
 
@@ -587,7 +587,7 @@ Each subpath has `{ "types": "./dist/types/<path>.d.ts", "import": "./dist/<path
   - `detectFeeds`, `inspectFromElement`, `detectFromSelector`, `validateSelector`, `matchSelector`;
   - `openFeed`, `removeItem`, `removeParts`;
   - `matchProfile`, `createProfile`, `serializeProfile`, `parseProfile`, `CURRENT_PROFILE_VERSION`;
-  - `createLlmProxy`, `registerXPathEngine`, `FeedDetectorError`, `BUILTIN_RULES`.
+  - `createLlmProxy`, `registerXPathEngine`, `FeedgrabError`, `BUILTIN_RULES`.
 - **Types**: every type from `types.ts` and `llm/contract.ts`.
 
 ## 6. Testing strategy
@@ -672,10 +672,10 @@ Ground truth is written as attributes that the library ignores. The selector gen
 ## 7. Example extension (`examples/extension`, WXT)
 
 ### 7.1 Setup
-- `package.json`: `name: "feed-detector-example-extension"`, `private: true`, deps `wxt` and `feed-detector: workspace:*` (plus the four provider packages for `allProviders`). Scripts: `dev`, `build` (`wxt build`), `build:firefox` (`wxt build -b firefox`), `zip`.
+- `package.json`: `name: "feedgrab-example-extension"`, `private: true`, deps `wxt` and `feedgrab: workspace:*` (plus the four provider packages for `allProviders`). Scripts: `dev`, `build` (`wxt build`), `build:firefox` (`wxt build -b firefox`), `zip`.
 - `wxt.config.ts`:
   - `manifestVersion: 3`;
-  - `manifest`: `name: "Feed Detector Example"`, `permissions: ['storage', 'activeTab', 'tabs']`, `host_permissions: ['<all_urls>']`, and `optional_host_permissions: ['http://localhost:11434/*']`;
+  - `manifest`: `name: "Feedgrab Example"`, `permissions: ['storage', 'activeTab', 'tabs']`, `host_permissions: ['<all_urls>']`, and `optional_host_permissions: ['http://localhost:11434/*']`;
   - `vite: () => ({ envPrefix: ['WXT_', 'FD_'] })`.
 - The library resolves through the workspace's built `dist`, so run the root `bun run build` before building the extension.
 
@@ -712,7 +712,7 @@ Ground truth is written as attributes that the library ignores. The selector gen
   - Save writes `settings`.
 
 ### 7.3 Build checks
-- `bun run --filter feed-detector-example-extension build` produces `examples/extension/.output/chrome-mv3`.
+- `bun run --filter feedgrab-example-extension build` produces `examples/extension/.output/chrome-mv3`.
 - `build:firefox` produces `.output/firefox-mv3`.
 
 ### 7.4 Smoke test (`tests/e2e/extension.spec.ts`, Chromium only)

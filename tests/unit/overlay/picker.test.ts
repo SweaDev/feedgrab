@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { getWindow } from '../../../src/env/dom';
-import type { FeedDetectorError } from '../../../src/errors';
+import type { FeedgrabError } from '../../../src/errors';
 import { pickElement } from '../../../src/overlay/picker';
 import { loadFixture } from '../../helpers/dom';
 import { domSnapshot } from '../../helpers/snapshot';
@@ -29,12 +29,12 @@ test('pickElement rejects on Escape and on abort', async () => {
   const win = getWindow(doc)!;
   const p = pickElement(doc);
   doc.body.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-  const e = (await p.catch((x) => x)) as FeedDetectorError;
+  const e = (await p.catch((x) => x)) as FeedgrabError;
   expect(e.code).toBe('OVERLAY_CANCELLED');
   const ac = new AbortController();
   const p2 = pickElement(doc, { signal: ac.signal });
   ac.abort();
-  expect(((await p2.catch((x) => x)) as FeedDetectorError).code).toBe('OVERLAY_CANCELLED');
+  expect(((await p2.catch((x) => x)) as FeedgrabError).code).toBe('OVERLAY_CANCELLED');
 });
 
 test('filter rejects elements', async () => {

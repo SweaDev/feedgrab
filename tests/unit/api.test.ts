@@ -8,7 +8,7 @@ import * as server from '../../src/server';
 
 const valueKeys = (m: object) => Object.keys(m).sort();
 
-test('feed-detector (core) value exports', () => {
+test('feedgrab (core) value exports', () => {
   expect(valueKeys(core)).toEqual(
     [
       'detectFeeds',
@@ -26,7 +26,7 @@ test('feed-detector (core) value exports', () => {
       'CURRENT_PROFILE_VERSION',
       'createLlmProxy',
       'registerXPathEngine',
-      'FeedDetectorError',
+      'FeedgrabError',
       'BUILTIN_RULES',
       'VERSION',
     ].sort(),
@@ -34,7 +34,7 @@ test('feed-detector (core) value exports', () => {
   expect(core.VERSION).toBe(pkg.version);
 });
 
-test('feed-detector/llm, /llm/providers, /server, /overlay', () => {
+test('feedgrab/llm, /llm/providers, /server, /overlay', () => {
   for (const k of ['handleLlmRequest', 'createModel', 'createModelFromEnv', 'readEnvConfig']) {
     expect(typeof (llm as Record<string, unknown>)[k]).toBe('function');
   }

@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import type { FeedDetectorError } from '../../../src/errors';
+import type { FeedgrabError } from '../../../src/errors';
 import { createModel, createModelFromEnv, readEnvConfig } from '../../../src/llm/index';
 import { allProviders } from '../../../src/llm/providers';
 
@@ -7,7 +7,7 @@ function codeOf(fn: () => unknown): string {
   try {
     fn();
   } catch (e) {
-    return (e as FeedDetectorError).code;
+    return (e as FeedgrabError).code;
   }
   return 'none';
 }
@@ -58,8 +58,8 @@ test('missing factory → LLM_PROVIDER_MISSING naming the package', () => {
     createModel({ provider: 'gemini', model: 'g' }, {});
     throw new Error('expected throw');
   } catch (e) {
-    expect((e as FeedDetectorError).code).toBe('LLM_PROVIDER_MISSING');
-    expect((e as FeedDetectorError).message).toContain('@ai-sdk/google');
+    expect((e as FeedgrabError).code).toBe('LLM_PROVIDER_MISSING');
+    expect((e as FeedgrabError).message).toContain('@ai-sdk/google');
   }
   expect(codeOf(() => createModelFromEnv(allProviders, {}))).toBe('LLM_CONFIG');
 });

@@ -1,6 +1,6 @@
-# Feed Detector — example extension (WXT)
+# Feedgrab — example extension (WXT)
 
-A minimal MV3 extension for Chromium and Firefox built on [`feed-detector`](../../README.md):
+A minimal MV3 extension for Chromium and Firefox built on [`feedgrab`](../../README.md):
 
 - **Popup**: "Detect feeds on this page" starts detection and the overlay in the active tab; lists
   the saved profiles for the current host (with Delete) and links to the settings.
@@ -17,8 +17,8 @@ A minimal MV3 extension for Chromium and Firefox built on [`feed-detector`](../.
 # from the repository root
 bun install
 bun run build                                                  # builds the library (dist/)
-bun run --filter feed-detector-example-extension build         # .output/chrome-mv3
-bun run --filter feed-detector-example-extension build:firefox # .output/firefox-mv3
+bun run --filter feedgrab-example-extension build         # .output/chrome-mv3
+bun run --filter feedgrab-example-extension build:firefox # .output/firefox-mv3
 ```
 
 ## Load it

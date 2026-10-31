@@ -1,15 +1,15 @@
 import { expect, test } from 'bun:test';
-import type { FeedDetectorError } from '../../../src/errors';
+import type { FeedgrabError } from '../../../src/errors';
 import { resolveBackend } from '../../../src/llm/backend';
 import type { DetectRequest } from '../../../src/llm/contract';
 import { handleLlmRequest } from '../../../src/llm/index';
 import { mockModel } from '../../helpers/mock-llm';
 
-async function errOf(p: Promise<unknown>): Promise<FeedDetectorError> {
+async function errOf(p: Promise<unknown>): Promise<FeedgrabError> {
   try {
     await p;
   } catch (e) {
-    return e as FeedDetectorError;
+    return e as FeedgrabError;
   }
   throw new Error('expected rejection');
 }

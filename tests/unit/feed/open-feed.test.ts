@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { detectFeeds } from '../../../src/detect/detect';
-import { FeedDetectorError } from '../../../src/errors';
+import { FeedgrabError } from '../../../src/errors';
 import { openFeed } from '../../../src/feed/unified-feed';
 import { createProfile } from '../../../src/profile/profile';
 import type { FeedDescriptor, FeedItem } from '../../../src/types';
@@ -84,7 +84,7 @@ test('dispose is idempotent; later calls throw DISPOSED', async () => {
     feed.items();
     throw new Error('expected throw');
   } catch (e) {
-    expect(e).toBeInstanceOf(FeedDetectorError);
-    expect((e as FeedDetectorError).code).toBe('DISPOSED');
+    expect(e).toBeInstanceOf(FeedgrabError);
+    expect((e as FeedgrabError).code).toBe('DISPOSED');
   }
 });
