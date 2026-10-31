@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { detectFeeds } from '../../../src/detect/detect';
-import { FeedDetectorError } from '../../../src/errors';
+import { FeedgrabError } from '../../../src/errors';
 import { openFeed } from '../../../src/feed/unified-feed';
 import { createProfile } from '../../../src/profile/profile';
 import { parseHtml } from '../../../src/server';
@@ -56,7 +56,7 @@ test('ingest after dispose throws DISPOSED', async () => {
     feed.ingest(fixtureHtml('paginated-2'));
     throw new Error('expected throw');
   } catch (e) {
-    expect((e as FeedDetectorError).code).toBe('DISPOSED');
-    expect(e).toBeInstanceOf(FeedDetectorError);
+    expect((e as FeedgrabError).code).toBe('DISPOSED');
+    expect(e).toBeInstanceOf(FeedgrabError);
   }
 });

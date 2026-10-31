@@ -1,4 +1,4 @@
-import type { LlmRequest } from 'feed-detector';
+import type { LlmRequest } from 'feedgrab';
 import { browser } from 'wxt/browser';
 
 /** Content → background: run an LLM request with the configured model. */

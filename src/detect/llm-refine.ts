@@ -1,4 +1,4 @@
-import { toFeedDetectorError } from '../errors';
+import { toFeedgrabError } from '../errors';
 import type { ResolvedBackend } from '../llm/backend';
 import type { DetectRequest, DetectResponse } from '../llm/contract';
 import { normalizeRule } from '../profile/normalize';
@@ -106,7 +106,7 @@ export async function refineWithLlm(
   try {
     res = await backend(req, { signal: opts.signal });
   } catch (e) {
-    opts.onLlmError?.(toFeedDetectorError(e, 'LLM_UNAVAILABLE'));
+    opts.onLlmError?.(toFeedgrabError(e, 'LLM_UNAVAILABLE'));
     return heuristic.map((h) => h.d);
   }
   const refined: Refined[] = [];

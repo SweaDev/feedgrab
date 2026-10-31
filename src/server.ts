@@ -32,7 +32,7 @@ export function parseHtml(html: string, url = 'about:blank'): Document {
     settings: {
       disableJavaScriptFileLoading: true,
       disableComputedStyleRendering: true,
-      navigator: { userAgent: 'feed-detector' },
+      navigator: { userAgent: 'feedgrab' },
     },
   });
   const doc = window.document as unknown as Document;

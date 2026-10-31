@@ -14,10 +14,10 @@ for (const s of SCENARIOS) {
     const summary = await page.evaluate(async (name) => {
       const g = globalThis as unknown as {
         __FD_SCENARIOS__: typeof SCENARIOS;
-        FeedDetector: Parameters<(typeof SCENARIOS)[number]['run']>[0];
+        Feedgrab: Parameters<(typeof SCENARIOS)[number]['run']>[0];
       };
       const scenario = g.__FD_SCENARIOS__.find((x) => x.name === name)!;
-      return scenario.run(g.FeedDetector, document, {
+      return scenario.run(g.Feedgrab, document, {
         fetchFixture: (n) => fetch(`/${n}.html`).then((r) => r.text()),
       });
     }, s.name);

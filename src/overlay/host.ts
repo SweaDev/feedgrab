@@ -11,7 +11,7 @@ export type OverlayHost = {
 };
 
 /**
- * Mounts the overlay: one `<div data-feed-detector-overlay>` with an open shadow root,
+ * Mounts the overlay: one `<div data-feedgrab-overlay>` with an open shadow root,
  * appended to `documentElement`. This is the only node the overlay adds to the page.
  */
 export function mountHost(
@@ -20,7 +20,7 @@ export function mountHost(
 ): OverlayHost {
   const theme = resolveTheme(opts.theme);
   const host = doc.createElement('div');
-  host.setAttribute('data-feed-detector-overlay', '');
+  host.setAttribute('data-feedgrab-overlay', '');
   host.setAttribute(
     'style',
     `position: fixed; inset: 0; pointer-events: none; z-index: var(--fd-z, ${theme.zIndex});`,
@@ -45,5 +45,5 @@ export function mountHost(
 
 /** True when `el` is (inside) an overlay host. */
 export function isOverlayElement(el: Element | null): boolean {
-  return !!el?.closest?.('[data-feed-detector-overlay]');
+  return !!el?.closest?.('[data-feedgrab-overlay]');
 }

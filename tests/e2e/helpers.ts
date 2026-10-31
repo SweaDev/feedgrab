@@ -12,6 +12,6 @@ export async function openFixture(page: Page, name: string, scenarios = false): 
 
 /** `globalThis` inside the page after `openFixture`. */
 export type PageGlobal = {
-  FeedDetector: typeof import('../../src/index') & typeof import('../../src/overlay/index');
+  Feedgrab: typeof import('../../src/index') & typeof import('../../src/overlay/index');
   [key: string]: unknown;
 };

@@ -288,7 +288,7 @@ export function renderPanel(
       }),
   });
   const children: (Node | null)[] = [
-    h(doc, 'h2', null, 'Feed Detector'),
+    h(doc, 'h2', null, 'Feedgrab'),
     feeds,
     h(
       doc,

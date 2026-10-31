@@ -1,7 +1,7 @@
 import type * as Core from '../../src/index';
 import type { FeedDescriptor, FeedItem, UnifiedFeed } from '../../src/types';
 
-/** The core API (in the browser: `globalThis.FeedDetector`). */
+/** The core API (in the browser: `globalThis.Feedgrab`). */
 export type Api = typeof Core;
 export type ScenarioContext = { fetchFixture(name: string): Promise<string> };
 

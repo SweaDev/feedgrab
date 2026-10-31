@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { FeedDetectorError } from '../../../src/errors';
+import { FeedgrabError } from '../../../src/errors';
 import { normalizeRule, stableJson } from '../../../src/profile/normalize';
 import { createProfile, parseProfile, serializeProfile } from '../../../src/profile/profile';
 import type { FeedDescriptor } from '../../../src/types';
@@ -22,8 +22,8 @@ function codeOf(fn: () => unknown) {
   try {
     fn();
   } catch (e) {
-    expect(e).toBeInstanceOf(FeedDetectorError);
-    return e as FeedDetectorError;
+    expect(e).toBeInstanceOf(FeedgrabError);
+    return e as FeedgrabError;
   }
   throw new Error('expected throw');
 }

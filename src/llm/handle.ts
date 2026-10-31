@@ -1,5 +1,5 @@
 import type { LanguageModel } from 'ai';
-import { FeedDetectorError } from '../errors';
+import { FeedgrabError } from '../errors';
 import {
   ClassifyResponseSchema,
   DetectResponseSchema,
@@ -23,7 +23,7 @@ export async function handleLlmRequest(
 ): Promise<LlmResponse> {
   const parsed = LlmRequestSchema.safeParse(req);
   if (!parsed.success) {
-    throw new FeedDetectorError('LLM_BAD_REQUEST', 'Malformed LLM request', {
+    throw new FeedgrabError('LLM_BAD_REQUEST', 'Malformed LLM request', {
       issues: parsed.error.issues,
     });
   }

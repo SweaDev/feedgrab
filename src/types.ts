@@ -1,5 +1,5 @@
 import type { LanguageModel } from 'ai';
-import type { FeedDetectorError } from './errors';
+import type { FeedgrabError } from './errors';
 import type { LlmProxyFn } from './llm/contract';
 
 export type { LlmProxyFn } from './llm/contract';
@@ -104,7 +104,7 @@ export type DetectOptions = {
   /** Skeleton budget (default 12000). */
   maxSkeletonChars?: number;
   signal?: AbortSignal;
-  onLlmError?: (e: FeedDetectorError) => void;
+  onLlmError?: (e: FeedgrabError) => void;
 };
 
 /** Tuning for the LLM text classifier. */
@@ -144,7 +144,7 @@ export type FeedEvents = {
   'item:updated': [item: FeedItem, prevStatus: ItemStatus];
   'item:removed': [item: FeedItem];
   'feed:lost': [info: { feedId: string }];
-  'feed:error': [info: { feedId?: string; error: FeedDetectorError }];
+  'feed:error': [info: { feedId?: string; error: FeedgrabError }];
 };
 
 /** Listener for a feed event. */

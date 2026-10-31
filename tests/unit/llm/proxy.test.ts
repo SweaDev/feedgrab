@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { FeedDetectorError } from '../../../src/errors';
+import { FeedgrabError } from '../../../src/errors';
 import { resolveBackend } from '../../../src/llm/backend';
 import type { ClassifyRequest, LlmRequest } from '../../../src/llm/contract';
 import { createLlmProxy, isLanguageModel } from '../../../src/llm/proxy';
@@ -9,11 +9,11 @@ const req: ClassifyRequest = {
   criteria: ['ads'],
   items: [{ id: 'a', text: 'Buy now' }],
 };
-async function errOf(p: Promise<unknown>): Promise<FeedDetectorError> {
+async function errOf(p: Promise<unknown>): Promise<FeedgrabError> {
   try {
     await p;
   } catch (e) {
-    return e as FeedDetectorError;
+    return e as FeedgrabError;
   }
   throw new Error('expected rejection');
 }
@@ -34,7 +34,7 @@ test('valid round trip (request is cloned)', async () => {
 test('invalid response → LLM_INVALID_RESPONSE', async () => {
   const proxy = createLlmProxy(async () => ({ results: [{ id: 'a', exclude: 'yes' }] }));
   const e = await errOf(proxy(req));
-  expect(e).toBeInstanceOf(FeedDetectorError);
+  expect(e).toBeInstanceOf(FeedgrabError);
   expect(e.code).toBe('LLM_INVALID_RESPONSE');
 });
 

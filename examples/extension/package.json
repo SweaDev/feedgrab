@@ -1,5 +1,5 @@
 {
-  "name": "feed-detector-example-extension",
+  "name": "feedgrab-example-extension",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,7 +15,7 @@
     "@ai-sdk/openai": "^4",
     "@ai-sdk/openai-compatible": "^3",
     "@openrouter/ai-sdk-provider": "^3",
-    "feed-detector": "workspace:*"
+    "feedgrab": "workspace:*"
   },
   "devDependencies": {
     "wxt": "^0.21.5"

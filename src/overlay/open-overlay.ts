@@ -1,7 +1,7 @@
 import { inspectFromElement } from '../detect/inspect';
 import { hasLayout } from '../env/dom';
 import { timers } from '../env/timers';
-import { FeedDetectorError } from '../errors';
+import { FeedgrabError } from '../errors';
 import { openFeed } from '../feed/unified-feed';
 import { resolveContainers } from '../selector/evaluate';
 import { cssEscape } from '../selector/generate';
@@ -43,7 +43,7 @@ export async function openOverlay(
   opts: OverlayOptions = {},
 ): Promise<SiteProfile> {
   if (!hasLayout(doc)) {
-    throw new FeedDetectorError('OVERLAY_NO_LAYOUT', 'The overlay needs a rendered page');
+    throw new FeedgrabError('OVERLAY_NO_LAYOUT', 'The overlay needs a rendered page');
   }
   const url = opts.url ?? doc.URL;
   const mounted = mountHost(doc, { theme: opts.theme, customCss: opts.customCss });
@@ -176,7 +176,7 @@ export async function openOverlay(
     function onCancel() {
       if (settled) return;
       cleanup();
-      reject(new FeedDetectorError('OVERLAY_CANCELLED', 'The overlay was cancelled'));
+      reject(new FeedgrabError('OVERLAY_CANCELLED', 'The overlay was cancelled'));
     }
 
     function onKey(e: Event) {

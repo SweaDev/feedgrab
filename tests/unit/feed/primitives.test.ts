@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import type { FeedDetectorError } from '../../../src/errors';
+import type { FeedgrabError } from '../../../src/errors';
 import { AsyncQueue } from '../../../src/feed/async-queue';
 import { Emitter } from '../../../src/feed/emitter';
 import { FeedItemImpl } from '../../../src/feed/feed-item';
@@ -39,7 +39,7 @@ test('text fallback and placeholder', () => {
 test('emitter: unsubscribe, once and error routing without recursion', () => {
   const em = new Emitter();
   const seen: string[] = [];
-  const errors: FeedDetectorError[] = [];
+  const errors: FeedgrabError[] = [];
   const off = em.on('feed:lost', ({ feedId }) => seen.push(feedId));
   em.once('feed:lost', ({ feedId }) => seen.push(`once:${feedId}`));
   em.on('feed:error', ({ error }) => errors.push(error));

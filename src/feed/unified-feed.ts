@@ -1,7 +1,7 @@
 import { restoreRecorded } from '../cleanup/remove';
 import { isParsedDocument } from '../env/dom';
 import { timers } from '../env/timers';
-import { FeedDetectorError, toFeedDetectorError } from '../errors';
+import { FeedgrabError, toFeedgrabError } from '../errors';
 import { type EvaluationContext, evaluateItem } from '../exclude/engine';
 import { classifierKey, LlmClassifier } from '../exclude/llm-classifier';
 import { resolveBackend } from '../llm/backend';
@@ -141,7 +141,7 @@ export class UnifiedFeedImpl implements UnifiedFeed {
   }
 
   reportError(e: unknown, feedId?: string): void {
-    const error = toFeedDetectorError(e, 'INVALID_SELECTOR');
+    const error = toFeedgrabError(e, 'INVALID_SELECTOR');
     this.emitter.emit('feed:error', feedId ? { feedId, error } : { error });
   }
 
@@ -272,7 +272,7 @@ export class UnifiedFeedImpl implements UnifiedFeed {
   }
 
   protected assertOpen(): void {
-    if (this.disposed) throw new FeedDetectorError('DISPOSED', 'The feed has been disposed');
+    if (this.disposed) throw new FeedgrabError('DISPOSED', 'The feed has been disposed');
   }
 
   get isDisposed(): boolean {

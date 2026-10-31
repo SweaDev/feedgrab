@@ -1,4 +1,4 @@
-# TASKS-01: Feed Detector v1 — Task List
+# TASKS-01: Feedgrab v1 — Task List
 
 Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<b>` means lines a to b, inclusive.
 
@@ -33,7 +33,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Files: `package.json`, `tsconfig.json`, `biome.json`, `bunfig.toml`, `.gitignore`, `.env.example`, `LICENSE`, `src/index.ts`, `tests/unit/smoke.test.ts`, `spec/NOTES-01.md`
   - Do:
     1. Run `bun init -y` if useful, then write `package.json`:
-       - `name: "feed-detector"`, `version: "0.1.0"`, `type: "module"`, `license: "MIT"`, `author: "Fayaz Ahmed"`;
+       - `name: "feedgrab"`, `version: "0.1.0"`, `type: "module"`, `license: "MIT"`, `author: "Fayaz Ahmed"`;
        - `workspaces: ["examples/*"]`;
        - every script from PLAN L166-178 (`check:all` may reference later things).
     2. Install the regular deps: `bun add zod ai @medv/finder xpath`.
@@ -51,7 +51,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Files: `scripts/build.ts`, `scripts/check-size.ts`, `tsconfig.build.json`, `package.json` (exports/files/sideEffects), stubs `src/overlay/index.ts`, `src/server.ts`, `src/llm/index.ts`, `src/llm/providers.ts`, `src/llm/run-model.ts`, `src/llm/run-model.stub.ts`, `src/browser.ts`
   - Do:
     1. Create each entry stub with `export {};` (or a placeholder `VERSION` re-export). `run-model.ts` exports `async function runModel(): Promise<never>`, which throws `new Error('not implemented')`. `run-model.stub.ts` has the same signature.
-    2. Make `src/browser.ts` assign `globalThis.FeedDetector = { VERSION }`.
+    2. Make `src/browser.ts` assign `globalThis.Feedgrab = { VERSION }`.
     3. Implement `scripts/build.ts` exactly as in PLAN L179-192: the ESM entries with externals read from `package.json` deps and peers; the IIFE bundle with an `onResolve` plugin that maps `/run-model$/` to `run-model.stub.ts`; then `tsc -p tsconfig.build.json`; then the size print.
     4. Implement `scripts/check-size.ts`: fail if `dist/browser.global.js` is larger than 120 KB.
     5. Write the `exports` map, `files`, and `sideEffects` in `package.json` per PLAN L133-144, with types under `dist/types/...`.
@@ -69,17 +69,17 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
        - `Rule`: the optional `id`/`origin` from PLAN L47-52.
        - `UnifiedFeed`: `items()`, `iterate()`, `[Symbol.asyncIterator]`, `on`/`off`/`once`, `ingest`, `dispose`, `readonly profile`.
        - `FeedEvents`: `item:added`, `item:updated` (item, prevStatus), `item:removed`, `feed:lost` ({feedId}), `feed:error` ({feedId?, error}).
-    3. In `errors.ts`, write `FeedDetectorError` with the `ErrorCode` union from PLAN L205-206, `name = 'FeedDetectorError'`, and `details`.
+    3. In `errors.ts`, write `FeedgrabError` with the `ErrorCode` union from PLAN L205-206, `name = 'FeedgrabError'`, and `details`.
     4. Test: `instanceof`, `code`, `details`.
   - Accept: `bun run check`.
-  - Commit: `feat(types): add public types and FeedDetectorError (T03)`
+  - Commit: `feat(types): add public types and FeedgrabError (T03)`
 
 - [x] **T04 — Environment utilities (dom, hash, text, timers)**
   - Depends: T03
   - Read: PLAN L33-41, L64-66, L209-221
   - Files: `src/env/dom.ts`, `src/env/hash.ts`, `src/env/text.ts`, `src/env/timers.ts`, `tests/unit/env/*.test.ts`
   - Do:
-    1. In `dom.ts`, implement everything listed in PLAN L210-216, plus `PARSED_DOCUMENT = Symbol.for('feed-detector.parsed')` and `isParsedDocument(doc)`.
+    1. In `dom.ts`, implement everything listed in PLAN L210-216, plus `PARSED_DOCUMENT = Symbol.for('feedgrab.parsed')` and `isParsedDocument(doc)`.
     2. `hash.ts`: FNV-1a 32-bit → base36, padded to 7 characters.
     3. `text.ts`: `normalizeText` and `textLength`, using `doc.createTreeWalker` and skipping SCRIPT/STYLE.
     4. `timers.ts`: `timers = { setTimeout, clearTimeout, queueMicrotask, now }`, delegating to `globalThis`, plus a test-only `__setTimers(partial)`.
@@ -100,7 +100,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
     2. `server.ts`: `parseHtml(html, url)` and `disposeDocument(doc)` per PLAN L569-578. Tag the document with `PARSED_DOCUMENT`. Register the `xpath` package engine when `doc.evaluate` is missing or fails a probe.
     3. Helpers:
        - `loadFixture(name, url?)`, `fixtureTruth(doc)` (returns `{ feeds: Map<name, Element>, items: Element[], excluded: Map<kind, Element[]>, parts: Element[] }`), and `appendFragment(container, html)`;
-       - `domSnapshot(doc)`, which removes `[data-feed-detector-overlay]` from a clone.
+       - `domSnapshot(doc)`, which removes `[data-feedgrab-overlay]` from a clone.
     4. `capabilities.test.ts` asserts and **logs** the following in a parsed document:
        - `querySelectorAll(':scope > div')` on an element;
        - `:has()`;
@@ -530,13 +530,13 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
     1. `src/browser.ts` per PLAN L579-583, with `version` taken from `package.json`.
     2. Make sure `src/index.ts` exports exactly the list at PLAN L584-591.
     3. `api.test.ts`:
-       - check the value exports of `feed-detector` (core) against the list;
-       - `feed-detector/llm` exports `handleLlmRequest`, `createModel`, `createModelFromEnv`, and `readEnvConfig`;
-       - `feed-detector/server` exports `parseHtml` and `disposeDocument`;
-       - `feed-detector/overlay` exports `openOverlay`, `pickElement`, and `DEFAULT_THEME`.
+       - check the value exports of `feedgrab` (core) against the list;
+       - `feedgrab/llm` exports `handleLlmRequest`, `createModel`, `createModelFromEnv`, and `readEnvConfig`;
+       - `feedgrab/server` exports `parseHtml` and `disposeDocument`;
+       - `feedgrab/overlay` exports `openOverlay`, `pickElement`, and `DEFAULT_THEME`.
     4. Build, and confirm the IIFE contains the stub: grep the bundle for `LLM_MODEL_UNSUPPORTED_IN_BUNDLE`, and confirm it has no `generateObject`/`generateText` code from `ai`.
   - Accept: `bun run check && bun run build && bun run scripts/check-size.ts`. Also `grep -q LLM_MODEL_UNSUPPORTED_IN_BUNDLE dist/browser.global.js`.
-  - Commit: `feat(browser): add iife bundle exposing FeedDetector global (T30)`
+  - Commit: `feat(browser): add iife bundle exposing Feedgrab global (T30)`
 
 - [x] **T31 — Playwright setup, parity scenarios, and live-scroll E2E**
   - Depends: T30
@@ -545,7 +545,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Do:
     1. Run `bunx playwright install chromium firefox` (and `--with-deps` if the system libs are missing; retry twice).
     2. `serve.ts` serves `tests/fixtures` on port 4599. In `playwright.config.ts`, prefer the `webServer: { command: 'bun tests/e2e/serve.ts', port: 4599 }` form, with projects `chromium` and `firefox`.
-    3. Scenarios (PLAN L634-640): at least `detect-social`, `feed-two-feeds`, `feed-search`, and `ingest-paginated`. Each returns a JSON summary without confidence. `tests/scenarios/build.ts` bundles them to `dist-test/scenarios.global.js` (IIFE, global `__FD_SCENARIOS__`, taking the API from `globalThis.FeedDetector`). Add `dist-test` to `.gitignore`.
+    3. Scenarios (PLAN L634-640): at least `detect-social`, `feed-two-feeds`, `feed-search`, and `ingest-paginated`. Each returns a JSON summary without confidence. `tests/scenarios/build.ts` bundles them to `dist-test/scenarios.global.js` (IIFE, global `__FD_SCENARIOS__`, taking the API from `globalThis.Feedgrab`). Add `dist-test` to `.gitignore`.
     4. `tests/unit/scenarios.test.ts` runs the scenarios in Bun and writes their summaries to `dist-test/bun-summaries.json`.
     5. `parity.spec.ts`:
        - build the scenarios and load the Bun summaries;
@@ -561,7 +561,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
   - Files: `tests/e2e/overlay.spec.ts`, `tests/e2e/theme.spec.ts`
   - Do:
     1. `overlay.spec.ts` on `social-feed`:
-       - in the page, `const proposals = await FeedDetector.detectFeeds(document)`, then start `openOverlay` and keep the promise on `window`;
+       - in the page, `const proposals = await Feedgrab.detectFeeds(document)`, then start `openOverlay` and keep the promise on `window`;
        - assert the host exists and highlight boxes are drawn;
        - use the `data-fd-action` controls to accept the first feed, add the exclude selector `.post.promoted` (scope item), and Save;
        - the resolved profile JSON has 1 feed, `confirmed: true`, and the rule present;
@@ -583,7 +583,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
     3. `background.ts` per PLAN L690-692: model from settings, else `readEnvConfig(import.meta.env)`; `createModel(config, allProviders)`; a model cache; reply with `handleLlmRequest`.
     4. `content.ts` per PLAN L693-702, including the `FD_E2E` dev hook. Items are hidden with `removeItem` when excluded, and restored when the status changes back.
     5. Make sure root `bun run check` ignores `examples/extension/.output` and `.wxt`. The example has its own `tsconfig` that extends `.wxt/tsconfig.json`.
-  - Accept: `bun run build && bun run --filter feed-detector-example-extension build` produces `examples/extension/.output/chrome-mv3/manifest.json`. `bun run check` passes.
+  - Accept: `bun run build && bun run --filter feedgrab-example-extension build` produces `examples/extension/.output/chrome-mv3/manifest.json`. `bun run check` passes.
   - Commit: `feat(example): add wxt example extension with background llm proxy and content script (T33)`
 
 - [x] **T34 — Example popup, options page, overlay flow, and Firefox build**
@@ -594,7 +594,7 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
     1. Popup: a Detect button (`fd:start-detect` to the active tab, then `window.close()`), the profiles for the current host with Delete, and an options link.
     2. Options: the LLM provider select, model, base URL, API key (password), an enable-LLM checkbox, a color input for each theme color, and a panel position select. Save writes to storage and shows a status message.
     3. `README.md` covers how to build, load unpacked (Chrome) / temporary add-on (Firefox), the `.env` `FD_*` variables, and `OLLAMA_ORIGINS`.
-  - Accept: `bun run --filter feed-detector-example-extension build` and `bun run --filter feed-detector-example-extension build:firefox` both succeed (`.output/firefox-mv3/manifest.json` exists). `bun run check` passes.
+  - Accept: `bun run --filter feedgrab-example-extension build` and `bun run --filter feedgrab-example-extension build:firefox` both succeed (`.output/firefox-mv3/manifest.json` exists). `bun run check` passes.
   - Commit: `feat(example): add popup and options pages with firefox build (T34)`
 
 - [x] **T35 — Extension smoke E2E (Chromium)**
@@ -651,8 +651,8 @@ Source documents: `spec/SPEC-01.md` (SPEC) and `spec/PLAN-01.md` (PLAN). `L<a>-<
     2. Make sure every public export has JSDoc.
     3. Update the SPEC-01 §10 API sketch to match PLAN §2:
        - `SelectorInput`, `Rule.id`/`origin`, `feed:error`, `connected`/`rescuedBy`;
-       - `createModel(config, providers)`, plus the entries `feed-detector/llm` and `feed-detector/llm/providers`;
-       - `handleLlmRequest` living in `feed-detector/llm`;
+       - `createModel(config, providers)`, plus the entries `feedgrab/llm` and `feedgrab/llm/providers`;
+       - `handleLlmRequest` living in `feedgrab/llm`;
        - `disposeDocument`, `registerXPathEngine`, and `restore(): boolean`.
        Edit only §10.
     4. Run the full Definition of Done (PLAN L749-758). Fix any failures before ticking.

@@ -40,7 +40,7 @@ jobs:
         run: bun run test:e2e
 
       - name: Build example extension (Chrome)
-        run: bun run --filter feed-detector-example-extension build
+        run: bun run --filter feedgrab-example-extension build
 
       - name: Build example extension (Firefox)
-        run: bun run --filter feed-detector-example-extension build:firefox
+        run: bun run --filter feedgrab-example-extension build:firefox

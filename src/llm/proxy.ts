@@ -1,11 +1,11 @@
-import { FeedDetectorError, toFeedDetectorError } from '../errors';
+import { FeedgrabError, toFeedgrabError } from '../errors';
 import { type LlmProxyFn, type LlmTask, type ResponseFor, responseSchemaFor } from './contract';
 
 /** Validates a raw response for a task; throws `LLM_INVALID_RESPONSE`. */
 export function validateResponse<T extends LlmTask>(task: T, res: unknown): ResponseFor<T> {
   const parsed = responseSchemaFor(task).safeParse(res);
   if (!parsed.success) {
-    throw new FeedDetectorError('LLM_INVALID_RESPONSE', `Invalid ${task} response`, {
+    throw new FeedgrabError('LLM_INVALID_RESPONSE', `Invalid ${task} response`, {
       issues: parsed.error.issues,
     });
   }
@@ -24,7 +24,7 @@ export function createLlmProxy(send: LlmProxyFn): LlmProxyFn {
     try {
       res = await send(JSON.parse(JSON.stringify(req)), opts);
     } catch (e) {
-      throw toFeedDetectorError(e, 'LLM_UNAVAILABLE');
+      throw toFeedgrabError(e, 'LLM_UNAVAILABLE');
     }
     return validateResponse(req.task, res);
   };

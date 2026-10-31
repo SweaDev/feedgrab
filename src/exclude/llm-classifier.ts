@@ -1,6 +1,6 @@
 import { hashString } from '../env/hash';
 import { timers } from '../env/timers';
-import { type FeedDetectorError, toFeedDetectorError } from '../errors';
+import { type FeedgrabError, toFeedgrabError } from '../errors';
 import type { ResolvedBackend } from '../llm/backend';
 import type { ClassifierOptions } from '../types';
 import type { LlmVerdict } from './engine';
@@ -30,7 +30,7 @@ export function classifierKey(text: string, criteria: string[]): string {
  */
 export class LlmClassifier {
   private readonly opts: ClassifierOptions;
-  private readonly onError?: (e: FeedDetectorError) => void;
+  private readonly onError?: (e: FeedgrabError) => void;
   private readonly cache = new Map<string, LlmVerdict>();
   private readonly pending = new Set<string>();
   private queue: Entry[] = [];
@@ -41,7 +41,7 @@ export class LlmClassifier {
 
   constructor(
     private readonly backend: ResolvedBackend,
-    opts: Partial<ClassifierOptions> & { onError?: (e: FeedDetectorError) => void } = {},
+    opts: Partial<ClassifierOptions> & { onError?: (e: FeedgrabError) => void } = {},
   ) {
     const { onError, ...rest } = opts;
     this.opts = { ...CLASSIFIER_DEFAULTS, ...rest };
@@ -157,7 +157,7 @@ export class LlmClassifier {
     }
     if (this.disposed || ac.signal.aborted) return;
     this.settle(batch.map((e) => [e.key, { exclude: false, confidence: 0, error: true }]));
-    this.onError?.(toFeedDetectorError(lastError, 'LLM_UNAVAILABLE'));
+    this.onError?.(toFeedgrabError(lastError, 'LLM_UNAVAILABLE'));
   }
 
   private settle(results: [string, LlmVerdict][]): void {

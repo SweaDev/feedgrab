@@ -1,5 +1,5 @@
-import type { LlmConfig } from 'feed-detector/llm';
-import { DEFAULT_THEME, type OverlayTheme } from 'feed-detector/overlay';
+import type { LlmConfig } from 'feedgrab/llm';
+import { DEFAULT_THEME, type OverlayTheme } from 'feedgrab/overlay';
 import { getSettings, type Settings, saveSettings } from '../../lib/storage';
 
 type ColorKey = keyof typeof DEFAULT_THEME.colors;

@@ -7,7 +7,7 @@ type State = { feed: ReturnType<Api['openFeed']>; added: string[]; before: strin
 test('live feed picks up appended items in order; DOM otherwise unchanged', async ({ page }) => {
   await openFixture(page, 'infinite-base');
   await page.evaluate(async () => {
-    const FD = (globalThis as unknown as { FeedDetector: Api }).FeedDetector;
+    const FD = (globalThis as unknown as { Feedgrab: Api }).Feedgrab;
     const before = document.documentElement.outerHTML;
     const feeds = await FD.detectFeeds(document);
     const feed = FD.openFeed(document, FD.createProfile({ url: location.href, feeds }));

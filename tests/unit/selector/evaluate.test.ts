@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { FeedDetectorError } from '../../../src/errors';
+import { FeedgrabError } from '../../../src/errors';
 import { evaluateSelector, resolveContainers, resolveItems } from '../../../src/selector/evaluate';
 import { matchSelector, validateSelector } from '../../../src/selector/match';
 import { loadFixture } from '../../helpers/dom';
@@ -46,9 +46,9 @@ test('invalid css and xpath throw INVALID_SELECTOR', () => {
       evaluateSelector(sel, doc);
       throw new Error('expected throw');
     } catch (e) {
-      expect(e).toBeInstanceOf(FeedDetectorError);
-      expect((e as FeedDetectorError).code).toBe('INVALID_SELECTOR');
-      expect((e as FeedDetectorError).details).toHaveProperty('cause');
+      expect(e).toBeInstanceOf(FeedgrabError);
+      expect((e as FeedgrabError).code).toBe('INVALID_SELECTOR');
+      expect((e as FeedgrabError).details).toHaveProperty('cause');
     }
   }
 });

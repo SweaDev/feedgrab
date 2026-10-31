@@ -29,7 +29,7 @@ test('domSnapshot drops the overlay host', () => {
   const doc = parseHtml('<body><p>x</p></body>');
   const before = domSnapshot(doc);
   const host = doc.createElement('div');
-  host.setAttribute('data-feed-detector-overlay', '');
+  host.setAttribute('data-feedgrab-overlay', '');
   doc.documentElement.appendChild(host);
   expect(domSnapshot(doc)).toBe(before);
 });

@@ -1,5 +1,5 @@
 import { hasLayout, isElement } from '../env/dom';
-import { FeedDetectorError } from '../errors';
+import { FeedgrabError } from '../errors';
 import { createHighlighter } from './highlighter';
 import { isOverlayElement, mountHost } from './host';
 
@@ -61,7 +61,7 @@ export function pickElement(doc: Document, opts: PickOptions = {}): Promise<Elem
     };
     const cancel = () => {
       settle();
-      reject(new FeedDetectorError('OVERLAY_CANCELLED', 'Element picking was cancelled'));
+      reject(new FeedgrabError('OVERLAY_CANCELLED', 'Element picking was cancelled'));
     };
     const settle = () => {
       doc.removeEventListener('mouseover', onMove, true);

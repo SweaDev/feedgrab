@@ -1,5 +1,5 @@
 {
-  "name": "feed-detector",
+  "name": "feedgrab",
   "version": "0.1.0",
   "description": "Detect, describe and iterate content feeds in web pages (extension, headless and server-side).",
   "type": "module",
@@ -52,7 +52,7 @@
     "test:live": "bun test tests/live",
     "smoke:node": "bun run build && node scripts/node-smoke.mjs",
     "check": "bun run lint && bun run typecheck && bun run test",
-    "check:all": "bun run check && bun run build && bun run test:e2e && bun run --filter feed-detector-example-extension build"
+    "check:all": "bun run check && bun run build && bun run test:e2e && bun run --filter feedgrab-example-extension build"
   },
   "dependencies": {
     "ai": "^7.0.157",

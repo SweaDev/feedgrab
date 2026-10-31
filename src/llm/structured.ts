@@ -8,7 +8,7 @@ import {
   TypeValidationError,
 } from 'ai';
 import type { z } from 'zod/mini';
-import { FeedDetectorError, toFeedDetectorError } from '../errors';
+import { FeedgrabError, toFeedgrabError } from '../errors';
 
 function isSchemaFailure(e: unknown): boolean {
   return (
@@ -56,11 +56,11 @@ export async function generateStructured<T>(args: {
       if (parsed.success) return parsed.data;
       problem = JSON.stringify(parsed.error.issues);
     } catch (e) {
-      if (!isSchemaFailure(e)) throw toFeedDetectorError(e, 'LLM_UNAVAILABLE');
+      if (!isSchemaFailure(e)) throw toFeedgrabError(e, 'LLM_UNAVAILABLE');
       problem = errorText(e);
     }
   }
-  throw new FeedDetectorError('LLM_INVALID_RESPONSE', 'Model output did not match the schema', {
+  throw new FeedgrabError('LLM_INVALID_RESPONSE', 'Model output did not match the schema', {
     issues: problem,
   });
 }

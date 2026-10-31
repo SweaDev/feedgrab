@@ -1,6 +1,6 @@
-import { parseProfile, type SiteProfile, serializeProfile } from 'feed-detector';
-import type { LlmConfig } from 'feed-detector/llm';
-import type { OverlayTheme } from 'feed-detector/overlay';
+import { parseProfile, type SiteProfile, serializeProfile } from 'feedgrab';
+import type { LlmConfig } from 'feedgrab/llm';
+import type { OverlayTheme } from 'feedgrab/overlay';
 import { browser } from 'wxt/browser';
 
 export type Settings = { llm?: LlmConfig; theme?: OverlayTheme; enableLlm: boolean };

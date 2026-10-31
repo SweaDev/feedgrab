@@ -20,10 +20,10 @@ export type ErrorCode =
 /**
  * The only error type thrown by public APIs.
  * @example
- * try { parseProfile(s) } catch (e) { if (e instanceof FeedDetectorError && e.code === 'INVALID_PROFILE') … }
+ * try { parseProfile(s) } catch (e) { if (e instanceof FeedgrabError && e.code === 'INVALID_PROFILE') … }
  */
-export class FeedDetectorError extends Error {
-  override readonly name = 'FeedDetectorError';
+export class FeedgrabError extends Error {
+  override readonly name = 'FeedgrabError';
   readonly code: ErrorCode;
   readonly details?: unknown;
 
@@ -34,9 +34,9 @@ export class FeedDetectorError extends Error {
   }
 }
 
-/** Wraps any thrown value as a `FeedDetectorError` (pass-through when it already is one). */
-export function toFeedDetectorError(e: unknown, code: ErrorCode): FeedDetectorError {
-  if (e instanceof FeedDetectorError) return e;
+/** Wraps any thrown value as a `FeedgrabError` (pass-through when it already is one). */
+export function toFeedgrabError(e: unknown, code: ErrorCode): FeedgrabError {
+  if (e instanceof FeedgrabError) return e;
   const message = e instanceof Error ? e.message : String(e);
-  return new FeedDetectorError(code, message, { cause: e });
+  return new FeedgrabError(code, message, { cause: e });
 }
