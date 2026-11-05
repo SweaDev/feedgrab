@@ -21,8 +21,8 @@ Feedgrab is not published to npm yet. Each [GitHub release](https://github.com/S
 has a prebuilt package tarball attached. Install it by URL with any package manager:
 
 ```sh
-bun add https://github.com/SweaDev/feedgrab/releases/download/v0.1.0/feedgrab-0.1.0.tgz
-# or: npm i https://github.com/SweaDev/feedgrab/releases/download/v0.1.0/feedgrab-0.1.0.tgz
+bun add https://github.com/SweaDev/feedgrab/releases/download/v0.2.0/feedgrab-0.2.0.tgz
+# or: npm i https://github.com/SweaDev/feedgrab/releases/download/v0.2.0/feedgrab-0.2.0.tgz
 ```
 
 To upgrade, install the tarball URL of a newer release. Installing straight from the repository
@@ -153,13 +153,16 @@ disposeDocument(doc);
 
 - **FeedDescriptor**: one feed as serializable data: a `container` selector (may match several
   containers), an `item` selector evaluated **relative to each container** (generated selectors look
-  like `:scope > article`), `exclude`/`include` rules, `source`, `confidence`, `confirmed`.
+  like `:scope > article`), `exclude`/`include` rules, `source`, `confidence`, `confirmed`, and an
+  optional `permalink` selector (relative to the item) for the link that identifies each item.
 - **SiteProfile**: every descriptor for one page type, keyed by `hostname` + `pathPattern`
   (`*` = one segment, `**` = any number, `post-*` = wildcard within a segment).
   `matchProfile(url, profiles)` picks the most specific match. Profiles are plain JSON
   (`serializeProfile` / `parseProfile`, which validates and migrates by `version`). **You** store them.
 - **Unified feed**: items of every feed (and of ingested pages) in document order, de-duplicated by a
-  stable id (canonical permalink, else text hash). Each `FeedItem` has `status`, `reasons`
+  stable id (canonical permalink, else text hash). The permalink is the descriptor's `permalink`
+  link when it finds one, else the first `rel=bookmark`/`u-url`/`itemprop=url` link, link with a
+  `<time>`, heading link, or the deepest link, and is exposed as `item.permalink`. Each `FeedItem` has `status`, `reasons`
   (rule id, origin `builtin`/`user`/`llm`, criteria and confidence for LLM rules), `parts` (sub-elements
   matched by `part` rules), `connected`, `rescuedBy`, and `sourceUrl` for ingested pages.
 - **Statuses**: `kept`, `excluded`, or `pending` (waiting for an LLM verdict; shown, but don't act on
@@ -176,6 +179,8 @@ disposeDocument(doc);
 | `detectFeeds(doc, opts?)` | core | Propose feeds (heuristic, optional LLM refine). Never throws for LLM errors (`onLlmError`). |
 | `inspectFromElement(el, { minItems? })` | core | Walk up from any element to the nearest repeating group. |
 | `detectFromSelector(doc, { container?, item? })` | core | Build a descriptor from CSS/XPath selectors. |
+| `suggestPermalinks(items, baseUrl)` | core | Rank an item's links as permalink candidates (`{ selector, url, text, score }`), checked against the other items. |
+| `captureSample(doc, descriptor, { items?, maxBytes?, maxText? })` | core | Small stripped HTML copy of a feed's first items (default 2, 20 KB) to check edited selectors offline. |
 | `validateSelector(doc, sel)` | core | `{ valid, count, error? }`; never throws. |
 | `matchSelector(doc, sel, { root? })` | core | Matched elements, plus `boxes` when the page has layout. |
 | `openFeed(doc, profile, opts?)` | core | Open the `UnifiedFeed`: `items()`, `iterate()`, `for await`, `on/off/once`, `ingest()`, `dispose({ restore? })`. |

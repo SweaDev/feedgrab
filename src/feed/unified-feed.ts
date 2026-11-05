@@ -24,7 +24,7 @@ import { AsyncQueue } from './async-queue';
 import { Emitter } from './emitter';
 import { FeedItemImpl, INTERNAL } from './feed-item';
 import { ingestDocument } from './ingest';
-import { itemId } from './item-id';
+import { type ItemIdentity, itemIdentity } from './item-id';
 import { canObserve, FeedObserver } from './observer';
 import { ItemRegistry } from './registry';
 
@@ -145,8 +145,8 @@ export class UnifiedFeedImpl implements UnifiedFeed {
     this.emitter.emit('feed:error', feedId ? { feedId, error } : { error });
   }
 
-  itemIdOf(el: Element, baseUrl = this.baseUrl): string | null {
-    return itemId(el, baseUrl, this.minItemTextLength);
+  identityOf(el: Element, state: FeedState, baseUrl = this.baseUrl): ItemIdentity | null {
+    return itemIdentity(el, baseUrl, this.minItemTextLength, state.descriptor.permalink);
   }
 
   /** Creates, evaluates and registers new items; returns them (events not emitted). */
@@ -160,15 +160,17 @@ export class UnifiedFeedImpl implements UnifiedFeed {
     const added: FeedItemImpl[] = [];
     for (const el of elements) {
       if (this.registry.idOf(el)) continue;
-      const id = this.itemIdOf(el, baseUrl);
-      if (id === null) {
+      const identity = this.identityOf(el, state, baseUrl);
+      if (identity === null) {
         if (docSeq === 0) state.placeholders.add(el);
         continue;
       }
       state.placeholders.delete(el);
+      const { id, permalink } = identity;
       if (this.registry.get(id)) continue;
       const item = new FeedItemImpl({
         id,
+        permalink,
         feedId: state.descriptor.id,
         element: el,
         docSeq,

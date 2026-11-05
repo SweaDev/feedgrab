@@ -1,10 +1,12 @@
 export { type RemovalHandle, type RemovalMode, removeItem, removeParts } from './cleanup/remove';
 export { detectFeeds } from './detect/detect';
 export { detectFromSelector, inspectFromElement } from './detect/inspect';
+export { suggestPermalinks } from './detect/permalink';
 export type { ErrorCode } from './errors';
 export { FeedgrabError } from './errors';
 export type { BuiltinRule } from './exclude/builtin';
 export { BUILTIN_RULES } from './exclude/builtin';
+export { captureSample } from './feed/sample';
 export { openFeed } from './feed/unified-feed';
 export type * from './llm/contract';
 export { createLlmProxy } from './llm/proxy';
@@ -17,4 +19,4 @@ export { registerXPathEngine } from './selector/xpath';
 export type * from './types';
 
 /** Library version. */
-export const VERSION = '0.1.0';
+export const VERSION = '0.2.0';

@@ -142,6 +142,8 @@ inspectFromElement(el: Element, opts?: { minItems?: number }): FeedDescriptor
 detectFromSelector(doc: Document, sel: SelectorInput): FeedDescriptor
 validateSelector(doc: Document, sel: Selector): { valid: boolean; count: number; error?: string }
 matchSelector(doc: Document, sel: Selector, opts?: { root?: Element }): { elements: Element[]; boxes?: Box[] }
+suggestPermalinks(items: Element[], baseUrl: string): PermalinkCandidate[]   // { selector, url, text, score }, best first
+captureSample(doc: Document, d: FeedDescriptor, opts?: { items?; maxBytes?; maxText? }): string | null
 registerXPathEngine(engine: (expr: string, contextNode: Node) => Node[]): void   // for DOMs without document.evaluate
 
 // overlay (feedgrab/overlay)
@@ -177,6 +179,7 @@ type FeedDescriptor = {
   id: string; container: Selector; item: Selector;   // item is evaluated relative to each container
   exclude: Rule[]; include: Rule[];                  // include: selector rules only
   source: 'heuristic' | 'llm' | 'inspect' | 'manual'; confidence: number; confirmed: boolean;
+  permalink?: Selector;                              // item-relative; drives ids and item.permalink
 }
 type SiteProfile = { version: number; hostname: string; pathPattern: string; feeds: FeedDescriptor[]; updatedAt?: string }
 type Selector = { type: 'css' | 'xpath'; value: string }
@@ -184,7 +187,7 @@ type SelectorInput = { container?: Selector; item?: Selector }   // at least one
 type Rule =
   | { kind: 'selector'; selector: Selector; scope: 'item' | 'part'; id?: string; origin?: 'user' | 'llm' }
   | { kind: 'llm-text'; criteria: string; id?: string; origin?: 'user' | 'llm' }   // id auto-filled as r_<hash>
-type FeedItem = { /* §9.3 */ connected: boolean; rescuedBy?: { ruleId: string; origin: 'builtin' | 'user' | 'llm' } }
+type FeedItem = { /* §9.3 */ connected: boolean; permalink?: string; rescuedBy?: { ruleId: string; origin: 'builtin' | 'user' | 'llm' } }
 type FeedEvents = 'item:added' | 'item:updated' | 'item:removed' | 'feed:lost' | 'feed:error' /* { feedId?, error } */
 type LlmBackend = LanguageModel | LlmProxyFn // fn form = proxy (extension background or headless host)
 ```
