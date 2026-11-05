@@ -44,6 +44,11 @@ export type FeedDescriptor = {
   source: 'heuristic' | 'llm' | 'inspect' | 'manual';
   confidence: number;
   confirmed: boolean;
+  /**
+   * The item's permalink, relative to the item: a link, or an element inside or around one.
+   * Used for item ids and `FeedItem.permalink`; the heuristic applies when it is unset or finds no link.
+   */
+  permalink?: Selector;
 };
 
 /** Every feed descriptor for one page type (hostname + path pattern). */
@@ -86,9 +91,33 @@ export interface FeedItem {
   readonly rescuedBy?: RuleRef;
   /** Set for items of ingested documents. */
   readonly sourceUrl?: string;
+  /** Canonical URL the id is based on; unset for text-hash ids. */
+  readonly permalink?: string;
   /** Normalized text, as used for LLM classification. */
   text(): string;
 }
+
+/** A link of an item offered as its permalink by `suggestPermalinks`. */
+export type PermalinkCandidate = {
+  /** CSS selector relative to the item. */
+  selector: Selector;
+  /** Canonical URL in the first item. */
+  url: string;
+  /** Link text or `aria-label`, trimmed. */
+  text: string;
+  /** Higher is more likely the permalink (rounded to 4 decimals). */
+  score: number;
+};
+
+/** Options for `captureSample`. */
+export type SampleOptions = {
+  /** Items to keep (default 2). */
+  items?: number;
+  /** Size budget of the returned HTML in UTF-8 bytes (default 20000). */
+  maxBytes?: number;
+  /** Characters kept per text node (default 80). */
+  maxText?: number;
+};
 
 /** A `LanguageModel` (direct) or a proxy function. */
 export type LlmBackend = LanguageModel | LlmProxyFn;

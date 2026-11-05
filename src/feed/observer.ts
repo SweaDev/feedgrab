@@ -130,7 +130,7 @@ export class FeedObserver {
         const knownId = registry.idOf(el);
         const known = knownId ? registry.get(knownId) : undefined;
         if (known?.connected) continue;
-        const id = known ? known.id : feed.itemIdOf(el);
+        const id = known ? known.id : (feed.identityOf(el, w.state)?.id ?? null);
         if (id === null) {
           w.state.placeholders.add(el);
           continue;

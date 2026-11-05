@@ -23,6 +23,7 @@ export class FeedItemImpl implements FeedItem {
   connected = true;
   rescuedBy?: RuleRef;
   sourceUrl?: string;
+  permalink?: string;
   readonly [INTERNAL]: ItemInternal;
 
   constructor(init: {
@@ -31,11 +32,13 @@ export class FeedItemImpl implements FeedItem {
     element: Element;
     docSeq: number;
     sourceUrl?: string;
+    permalink?: string;
   }) {
     this.id = init.id;
     this.feedId = init.feedId;
     this.element = init.element;
     if (init.sourceUrl !== undefined) this.sourceUrl = init.sourceUrl;
+    if (init.permalink !== undefined) this.permalink = init.permalink;
     this[INTERNAL] = { docSeq: init.docSeq };
   }
 

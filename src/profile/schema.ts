@@ -42,6 +42,7 @@ export const FeedDescriptorSchema = z.object({
   source: z.enum(['heuristic', 'llm', 'inspect', 'manual']),
   confidence: z.number().check(z.gte(0), z.lte(1)),
   confirmed: z.boolean(),
+  permalink: z.optional(SelectorSchema),
 });
 
 /** zod schema for `SiteProfile v1`. */
