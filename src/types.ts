@@ -55,6 +55,53 @@ export type FeedDescriptor = {
    * only known tracking parameters (`utm_*`, `fbclid`, …) are removed.
    */
   permalinkParams?: string[];
+  /**
+   * The structure of a well-formed item, usually taken from one the user chose (see
+   * `suggestStructure`). When it has required parts, items missing one are excluded (reason
+   * kind `structure`) instead of being checked by the built-in signature-outlier rule.
+   */
+  structure?: ItemStructure;
+};
+
+/** One element of an item's structure (`FeedDescriptor.structure`). */
+export type StructurePart = {
+  /** Selector relative to the item; the part is present when it matches an element. */
+  selector: Selector;
+  /** Items without this part are excluded. Optional parts only rank items (`findReferenceItem`). */
+  required: boolean;
+  /** Short name for UIs, e.g. `link`, `time`, `image`. */
+  label?: string;
+};
+
+/** The parts a well-formed item of a feed has. */
+export type ItemStructure = { parts: StructurePart[] };
+
+/** A part offered by `suggestStructure`. */
+export type StructureCandidate = StructurePart & {
+  /** Share of the items that have this part (rounded to 4 decimals). */
+  coverage: number;
+  /** Text, `alt` or `aria-label` of the part in the reference item, trimmed. */
+  text: string;
+};
+
+/** Options for `suggestStructure`. */
+export type StructureOptions = {
+  /** The well-formed item to describe (default `items[0]`). */
+  reference?: Element;
+  /** Parts at least this share of the items have are suggested as required (default 0.7). */
+  requiredCoverage?: number;
+  /** Maximum number of parts (default 16). */
+  maxParts?: number;
+};
+
+/** Result of `matchStructure`. */
+export type StructureMatch = {
+  /** True when the item has every required part. */
+  ok: boolean;
+  /** Required parts the item lacks. */
+  missing: StructurePart[];
+  /** Number of optional parts the item has. */
+  optional: number;
 };
 
 /** Every feed descriptor for one page type (hostname + path pattern). */
@@ -73,7 +120,7 @@ export type ItemStatus = 'kept' | 'excluded' | 'pending';
 export type ExclusionMatch = {
   ruleId: string;
   origin: MatchOrigin;
-  kind: 'selector' | 'llm-text' | 'signature-outlier';
+  kind: 'selector' | 'llm-text' | 'signature-outlier' | 'structure';
   selector?: Selector;
   criteria?: string;
   confidence?: number;
@@ -107,7 +154,7 @@ export interface FeedItem {
 export type PermalinkCandidate = {
   /** CSS selector relative to the item. */
   selector: Selector;
-  /** Canonical URL in the first item. */
+  /** Canonical URL in the reference item. */
   url: string;
   /** Link text or `aria-label`, trimmed. */
   text: string;
@@ -136,6 +183,17 @@ export type SampleOptions = {
   maxBytes?: number;
   /** Characters kept per text node (default 80). */
   maxText?: number;
+  /**
+   * An item that must be in the sample (default: the descriptor's `structure` reference item,
+   * see `findReferenceItem`, else the first item). The other items are the first ones in order.
+   */
+  reference?: Element;
+};
+
+/** Options for `suggestPermalinks`. */
+export type PermalinkOptions = {
+  /** The item whose links are ranked (default `items[0]`). */
+  reference?: Element;
 };
 
 /** A `LanguageModel` (direct) or a proxy function. */

@@ -1,7 +1,7 @@
 import { evaluateSelector } from '../selector/evaluate';
 import { cssEscape } from '../selector/generate';
 import { stableClasses } from '../signature/classes';
-import type { PermalinkCandidate, PermalinkParam, Selector } from '../types';
+import type { PermalinkCandidate, PermalinkOptions, PermalinkParam, Selector } from '../types';
 
 const TRACKING = /^(utm_.*|fbclid|gclid|mc_cid|mc_eid|ref|ref_src)$/i;
 const HEADING = 'h1, h2, h3, h4, h5, h6, [role="heading"]';
@@ -227,12 +227,17 @@ const sameSite = (url: string, baseUrl: string) => {
 };
 
 /**
- * Ranks the distinct links of `items[0]` as permalink candidates, each with a CSS selector
- * relative to the item. The other items show which selectors carry over (coverage) and point to
- * a different URL per item (uniqueness), so pass a few items of the same feed.
+ * Ranks the distinct links of the reference item (default `items[0]`) as permalink candidates,
+ * each with a CSS selector relative to the item. The other items show which selectors carry over
+ * (coverage) and point to a different URL per item (uniqueness), so pass a few items of the same
+ * feed.
  */
-export function suggestPermalinks(items: Element[], baseUrl: string): PermalinkCandidate[] {
-  const [root] = items;
+export function suggestPermalinks(
+  items: Element[],
+  baseUrl: string,
+  opts: PermalinkOptions = {},
+): PermalinkCandidate[] {
+  const root = opts.reference ?? items[0];
   if (!root) return [];
   const heading = headingLink(root);
   const seen = new Set<string>();

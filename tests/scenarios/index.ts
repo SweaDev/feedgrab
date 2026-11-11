@@ -79,4 +79,21 @@ export const SCENARIOS: Scenario[] = [
       return summary;
     },
   },
+  {
+    name: 'structure-social',
+    fixture: 'social-feed',
+    async run(api, doc) {
+      const { descriptors, feed } = await detectAndOpen(api, doc, 'social-feed');
+      const elements = feed.items().map((i) => i.element);
+      feed.dispose();
+      const parts = api.suggestStructure(elements, { reference: elements[1] });
+      const feeds = descriptors.map((d, i) => (i === 0 ? { ...d, structure: { parts } } : d));
+      const url = `${BASE}social-feed`;
+      const profile = api.createProfile({ url, feeds });
+      const shaped = api.openFeed(doc, profile, { live: false, baseUrl: url });
+      const summary = summarize(feeds, shaped.items());
+      shaped.dispose();
+      return summary;
+    },
+  },
 ];

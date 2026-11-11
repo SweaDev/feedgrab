@@ -1,4 +1,6 @@
+import { compareDocumentOrder } from '../detect/candidate';
 import { linkBySelector } from '../detect/permalink';
+import { findReferenceItem, matchStructure } from '../detect/structure';
 import { resolveContainers, resolveItems } from '../selector/evaluate';
 import { isStableClass } from '../signature/classes';
 import type { FeedDescriptor, SampleOptions } from '../types';
@@ -113,15 +115,19 @@ function build(doc: Document, items: Element[], mode: Mode): Document {
 /** Whether the sample still yields the items (and their permalinks) under `d`. */
 function verify(sample: Document, d: FeedDescriptor, items: Element[]): boolean {
   try {
-    const found = resolveContainers(sample, d).flatMap((c) => resolveItems(c, d));
+    // Items skipped between sampled ones are empty shells; only copied items count.
+    const found = resolveContainers(sample, d)
+      .flatMap((c) => resolveItems(c, d))
+      .filter((el) => el.childNodes.length > 0);
     if (found.length < items.length) return false;
     const sel = d.permalink;
-    return (
-      !sel ||
-      items.every(
-        (el, i) => !linkBySelector(el, sel) || (found[i] && linkBySelector(found[i], sel)),
-      )
-    );
+    const structure = d.structure;
+    return items.every((el, i) => {
+      const copy = found[i];
+      if (!copy) return false;
+      if (sel && linkBySelector(el, sel) && !linkBySelector(copy, sel)) return false;
+      return !structure || !matchStructure(el, structure).ok || matchStructure(copy, structure).ok;
+    });
   } catch {
     return false;
   }
@@ -129,8 +135,15 @@ function verify(sample: Document, d: FeedDescriptor, items: Element[]): boolean 
 
 const bytes = (s: string) => new globalThis.TextEncoder().encode(s).length;
 
+/** The sampled items: the reference item plus the first others, in document order. */
+function pick(all: Element[], n: number, ref: Element | undefined): Element[] {
+  if (!ref) return all.slice(0, n);
+  return [ref, ...all.filter((el) => el !== ref).slice(0, n - 1)].sort(compareDocumentOrder);
+}
+
 /**
- * A small, stripped-down HTML copy of one feed: the path from `<html>` to its first items, with
+ * A small, stripped-down HTML copy of one feed: the path from `<html>` to some of its items
+ * (the reference item, see `SampleOptions.reference`, and the first others), with
  * scripts, styles, media, inline styles, event handlers and long text removed. Use it to check
  * edited selectors later without the live page (parse it with `DOMParser` or `parseHtml`).
  * Returns null when the feed has no items or no sample fits `maxBytes`. Never changes `doc`.
@@ -150,6 +163,10 @@ export function captureSample(
     return null;
   }
   if (!all.length) return null;
+  const structure = descriptor.structure;
+  const at = structure ? findReferenceItem(all, structure) : -1;
+  const ref =
+    opts.reference && all.includes(opts.reference) ? opts.reference : at >= 0 ? all[at] : undefined;
   const tries: Mode[] = [];
   for (let n = Math.min(want, all.length); n >= 1; n--) {
     for (const attrs of ['some', 'all'] as const) {
@@ -158,7 +175,7 @@ export function captureSample(
     }
   }
   for (const mode of tries) {
-    const items = all.slice(0, mode.items);
+    const items = pick(all, mode.items, ref);
     const sample = build(doc, items, mode);
     if (!verify(sample, descriptor, items)) continue;
     const html = `<!doctype html>${sample.documentElement.outerHTML}`;

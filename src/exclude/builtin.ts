@@ -14,6 +14,9 @@ const rule = (id: string, value: string): BuiltinRule => ({
 /** Rule id used for signature-outlier matches. */
 export const OUTLIER_RULE_ID = 'b_outlier';
 
+/** Rule id used for items missing a required part of `FeedDescriptor.structure`. */
+export const STRUCTURE_RULE_ID = 'r_structure';
+
 /**
  * Built-in ad rules. A match on the item element excludes the item; a match on a
  * descendant is reported as a part. The signature-outlier rule (`b_outlier`) has no selector.
