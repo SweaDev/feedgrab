@@ -2,6 +2,7 @@ export { type RemovalHandle, type RemovalMode, removeItem, removeParts } from '.
 export { detectFeeds } from './detect/detect';
 export { detectFromSelector, inspectFromElement } from './detect/inspect';
 export { suggestPermalinkParams, suggestPermalinks } from './detect/permalink';
+export { findReferenceItem, matchStructure, suggestStructure } from './detect/structure';
 export type { ErrorCode } from './errors';
 export { FeedgrabError } from './errors';
 export type { BuiltinRule } from './exclude/builtin';

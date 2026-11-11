@@ -88,6 +88,7 @@ If a profile stops matching (because the site's layout changed), the feed emits 
   Rules come from two places:
   - Built-in defaults (can be turned off): `data-ad*`, ad iframes, common ad containers, and items whose structural signature differs from the feed's main item signature.
   - User rules, added through the overlay or the API.
+- **Item structure** (`FeedDescriptor.structure`): the parts a well-formed item has (item-relative selectors such as the time link or the action bar), usually taken from an item the user chose. Each part is required or optional. Items missing a required part are excluded with reason kind `structure` (origin `user`, so a user `include` rule can rescue them), and the built-in signature-outlier rule is skipped for that feed. Optional parts only rank items when looking for the one most like the chosen item. Items are re-checked when their content changes, so an item whose required part renders late becomes `kept`.
 - **LLM text rules**: plain-language criteria, e.g. "sponsored or promoted posts" or "job ads". Item text is classified **in batches**. There is no regex.
   - Results are cached by item text hash, so items that show up again during scrolling or ingest are not re-classified.
   - Items waiting for a result are reported as `pending`, and are **shown** (the consumer is advised not to act on them yet). When the result arrives, the status changes to `kept` or `excluded` and an `item:updated` event fires.
@@ -142,9 +143,12 @@ inspectFromElement(el: Element, opts?: { minItems?: number }): FeedDescriptor
 detectFromSelector(doc: Document, sel: SelectorInput): FeedDescriptor
 validateSelector(doc: Document, sel: Selector): { valid: boolean; count: number; error?: string }
 matchSelector(doc: Document, sel: Selector, opts?: { root?: Element }): { elements: Element[]; boxes?: Box[] }
-suggestPermalinks(items: Element[], baseUrl: string): PermalinkCandidate[]   // { selector, url, text, score, params }, best first
+suggestPermalinks(items: Element[], baseUrl: string, opts?: { reference? }): PermalinkCandidate[]   // { selector, url, text, score, params }, best first
 suggestPermalinkParams(items: Element[], baseUrl: string, sel?: Selector): PermalinkParam[]   // { name, value, coverage, uniqueness }, by name
-captureSample(doc: Document, d: FeedDescriptor, opts?: { items?; maxBytes?; maxText? }): string | null
+captureSample(doc: Document, d: FeedDescriptor, opts?: { items?; maxBytes?; maxText?; reference? }): string | null
+suggestStructure(items: Element[], opts?: { reference?; requiredCoverage?; maxParts? }): StructureCandidate[]   // { selector, required, label, coverage, text }, document order
+matchStructure(item: Element, structure: ItemStructure): StructureMatch   // { ok, missing, optional }
+findReferenceItem(items: Element[], structure: ItemStructure): number     // first with every required part and most optional ones, else -1
 registerXPathEngine(engine: (expr: string, contextNode: Node) => Node[]): void   // for DOMs without document.evaluate
 
 // overlay (feedgrab/overlay)
@@ -182,7 +186,9 @@ type FeedDescriptor = {
   source: 'heuristic' | 'llm' | 'inspect' | 'manual'; confidence: number; confirmed: boolean;
   permalink?: Selector;                              // item-relative; drives ids and item.permalink
   permalinkParams?: string[];                        // query params kept in the permalink ([] = none); unset = drop tracking params
+  structure?: ItemStructure;                         // parts of a well-formed item; missing a required one excludes the item
 }
+type ItemStructure = { parts: { selector: Selector; required: boolean; label?: string }[] }   // selectors are item-relative
 type SiteProfile = { version: number; hostname: string; pathPattern: string; feeds: FeedDescriptor[]; updatedAt?: string }
 type Selector = { type: 'css' | 'xpath'; value: string }
 type SelectorInput = { container?: Selector; item?: Selector }   // at least one

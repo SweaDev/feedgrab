@@ -1,4 +1,5 @@
 import { compareDocumentOrder } from '../detect/candidate';
+import { matchStructure } from '../detect/structure';
 import { normalizeRule } from '../profile/normalize';
 import { evaluateSelector } from '../selector/evaluate';
 import { isSameKindSig, sigL1 } from '../signature/signature';
@@ -11,7 +12,7 @@ import type {
   RuleRef,
   SelectorRule,
 } from '../types';
-import { BUILTIN_RULES, OUTLIER_RULE_ID } from './builtin';
+import { BUILTIN_RULES, OUTLIER_RULE_ID, STRUCTURE_RULE_ID } from './builtin';
 import { matchBuiltin, matchSelectorRule } from './rules';
 import { compareSpecificity, type Specificity, selectorSpecificity } from './specificity';
 
@@ -104,6 +105,22 @@ export function evaluateItem(item: Element, ctx: EvaluationContext): Evaluation 
     }
     for (const el of m.parts) partCandidates.push({ element: el, rule: ref });
   }
+  const structure = descriptor.structure?.parts.some((p) => p.required)
+    ? descriptor.structure
+    : undefined;
+  const shape = structure && matchStructure(item, structure);
+  if (shape && !shape.ok) {
+    ex.push({
+      match: {
+        ruleId: STRUCTURE_RULE_ID,
+        origin: 'user',
+        kind: 'structure',
+        ...(shape.missing[0] ? { selector: shape.missing[0].selector } : {}),
+      },
+      rank: 3,
+      spec: ZERO,
+    });
+  }
   if (ctx.builtins) {
     for (const rule of BUILTIN_RULES) {
       const m = matchBuiltin(item, rule);
@@ -117,7 +134,7 @@ export function evaluateItem(item: Element, ctx: EvaluationContext): Evaluation 
       }
       for (const el of m.parts) partCandidates.push({ element: el, rule: ref });
     }
-    if (ctx.dominantSig && !isSameKindSig(sigL1(item), ctx.dominantSig)) {
+    if (!structure && ctx.dominantSig && !isSameKindSig(sigL1(item), ctx.dominantSig)) {
       ex.push({
         match: { ruleId: OUTLIER_RULE_ID, origin: 'builtin', kind: 'signature-outlier' },
         rank: 1,

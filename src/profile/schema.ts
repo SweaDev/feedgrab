@@ -32,6 +32,13 @@ export const LlmTextRuleSchema = z.object({
 /** zod schema for `Rule`. */
 export const RuleSchema = z.discriminatedUnion('kind', [SelectorRuleSchema, LlmTextRuleSchema]);
 
+/** zod schema for `ItemStructure`. */
+export const ItemStructureSchema = z.object({
+  parts: z.array(
+    z.object({ selector: SelectorSchema, required: z.boolean(), label: z.optional(z.string()) }),
+  ),
+});
+
 /** zod schema for `FeedDescriptor`. */
 export const FeedDescriptorSchema = z.object({
   id: nonEmpty(),
@@ -44,6 +51,7 @@ export const FeedDescriptorSchema = z.object({
   confirmed: z.boolean(),
   permalink: z.optional(SelectorSchema),
   permalinkParams: z.optional(z.array(nonEmpty())),
+  structure: z.optional(ItemStructureSchema),
 });
 
 /** zod schema for `SiteProfile v1`. */

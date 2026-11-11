@@ -124,7 +124,9 @@ Package entry points (`package.json` `exports`): `.` → `src/index.ts`, `./over
 - **Exclusion precedence** (`exclude/engine.ts`). Rank: user selector rule 3 > LLM selector rule
   or LLM text verdict 2 > builtin 1. Within a rank, higher specificity wins. An `include` rule
   rescues an item from an exclude of lower rank, or of equal rank with specificity ≤ its own, and
-  sets `rescuedBy`. Rescued items are never sent to the LLM. A builtin match on the item itself
+  sets `rescuedBy`. Rescued items are never sent to the LLM. A descriptor `structure` with required
+  parts excludes items missing one (kind `structure`, rank 3, origin `user`, zero specificity) and
+  turns off the signature-outlier builtin for that feed. A builtin match on the item itself
   excludes the item; a match on a descendant is reported as a part.
 - **`live` default.** `parseHtml` tags documents with `Symbol.for('feedgrab.parsed')`, which
   makes them `live: false`; otherwise feeds are live. One `MutationObserver` on

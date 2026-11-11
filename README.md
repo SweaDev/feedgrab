@@ -156,7 +156,15 @@ disposeDocument(doc);
   like `:scope > article`), `exclude`/`include` rules, `source`, `confidence`, `confirmed`, and an
   optional `permalink` selector (relative to the item) for the link that identifies each item, and
   optional `permalinkParams`: the query parameters that identify it (e.g. `['v']` for YouTube's
-  `watch?v=…&pp=…`; `[]` drops the query).
+  `watch?v=…&pp=…`; `[]` drops the query), and an optional `structure`: the parts a well-formed
+  item has (see below).
+- **Item structure**: `structure.parts` are item-relative selectors (time link, heading, image,
+  action bar, …), each `required` or optional. Items missing a required part are `excluded` with
+  reason kind `structure`, so ads and header rows that share the item selector are reported but
+  real items without, say, a thumbnail are not. Build it with `suggestStructure(items, { reference })`
+  from an item the user chose (parts most items have are suggested as required), let the user
+  adjust it, and later use `findReferenceItem(items, structure)` to start from the item most like
+  the one they chose.
 - **SiteProfile**: every descriptor for one page type, keyed by `hostname` + `pathPattern`
   (`*` = one segment, `**` = any number, `post-*` = wildcard within a segment).
   `matchProfile(url, profiles)` picks the most specific match. Profiles are plain JSON
@@ -182,9 +190,12 @@ disposeDocument(doc);
 | `detectFeeds(doc, opts?)` | core | Propose feeds (heuristic, optional LLM refine). Never throws for LLM errors (`onLlmError`). |
 | `inspectFromElement(el, { minItems? })` | core | Walk up from any element to the nearest repeating group. |
 | `detectFromSelector(doc, { container?, item? })` | core | Build a descriptor from CSS/XPath selectors. |
-| `suggestPermalinks(items, baseUrl)` | core | Rank an item's links as permalink candidates (`{ selector, url, text, score, params }`), checked against the other items. |
+| `suggestPermalinks(items, baseUrl, { reference? })` | core | Rank an item's links (default `items[0]`) as permalink candidates (`{ selector, url, text, score, params }`), checked against the other items. |
 | `suggestPermalinkParams(items, baseUrl, sel?)` | core | Query parameters of the items' permalinks (`{ name, value, coverage, uniqueness }`), to choose `permalinkParams` from. |
-| `captureSample(doc, descriptor, { items?, maxBytes?, maxText? })` | core | Small stripped HTML copy of a feed's first items (default 2, 20 KB) to check edited selectors offline. |
+| `captureSample(doc, descriptor, { items?, maxBytes?, maxText?, reference? })` | core | Small stripped HTML copy of some of a feed's items (default 2, 20 KB) to check edited selectors offline: the reference item (given, else the one `findReferenceItem` picks for the descriptor's `structure`) plus the first ones. |
+| `suggestStructure(items, { reference?, requiredCoverage?, maxParts? })` | core | Parts of a well-formed item (`{ selector, required, label, coverage, text }`), to save as `descriptor.structure` after the user adjusts them. |
+| `matchStructure(item, structure)` | core | `{ ok, missing, optional }`: whether an item has every required part. |
+| `findReferenceItem(items, structure)` | core | Index of the first item with every required part and the most optional ones, or -1. |
 | `validateSelector(doc, sel)` | core | `{ valid, count, error? }`; never throws. |
 | `matchSelector(doc, sel, { root? })` | core | Matched elements, plus `boxes` when the page has layout. |
 | `openFeed(doc, profile, opts?)` | core | Open the `UnifiedFeed`: `items()`, `iterate()`, `for await`, `on/off/once`, `ingest()`, `dispose({ restore? })`. |
