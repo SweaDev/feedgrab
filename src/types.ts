@@ -88,7 +88,7 @@ export type StructureCandidate = StructurePart & {
 export type StructureOptions = {
   /** The well-formed item to describe (default `items[0]`). */
   reference?: Element;
-  /** Parts at least this share of the items have are suggested as required (default 0.7). */
+  /** Parts at least this share of the reference's peers have are suggested as required (default 0.9). */
   requiredCoverage?: number;
   /** Maximum number of parts (default 16). */
   maxParts?: number;
