@@ -184,7 +184,9 @@ Package entry points (`package.json` `exports`): `.` → `src/index.ts`, `./over
 - Releases are not on npm. Pushing a `vX.Y.Z` tag that matches `package.json` `version` runs
   `.github/workflows/release.yml`: full CI (`ci.yml` via `workflow_call`), then `npm pack`, and
   the tarball is attached to a GitHub release. Agents never create or push tags. When you bump
-  `version`, also update the tarball URL in the README's Install section.
+  `version`, also update `VERSION` in `src/index.ts` (`tests/unit/api.test.ts` checks it matches),
+  the expected version in `tests/unit/smoke.test.ts`, and the tarball URL in the README's Install
+  section.
 
 ## Known environment gotchas
 
