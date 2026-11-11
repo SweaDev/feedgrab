@@ -77,6 +77,31 @@ test('suggestStructure: common parts required, the thumbnail optional, from the 
   expect(suggestStructure(items, { reference: items[2] })).toEqual(parts);
 });
 
+test('suggestStructure: required parts come from the reference peers, not ads and headings', () => {
+  // A third of the rows are noise, and 3 of 4 posts have a thumbnail.
+  const items = itemsOf(page(heading, ad, post(1, true), post(2, true), post(3), post(4, true)));
+  const parts = suggestStructure(items, { reference: items[2] });
+  expect(parts.map((p) => [p.label, p.required])).toEqual([
+    ['link', true],
+    ['link', true],
+    ['time', true],
+    ['link', false],
+    ['image', false],
+    ['text', true],
+    ['button', true],
+  ]);
+  expect(parts.find((p) => p.label === 'time')?.coverage).toBe(0.6667);
+  const structure = { parts };
+  expect(items.map((el) => matchStructure(el, structure).ok)).toEqual([
+    false,
+    false,
+    true,
+    true,
+    true,
+    true,
+  ]);
+});
+
 test('suggestStructure: nothing required with too few items; empty input', () => {
   const items = itemsOf(page(post(1), post(2)));
   expect(suggestStructure(items).every((p) => !p.required)).toBe(true);

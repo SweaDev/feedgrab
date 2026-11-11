@@ -18,8 +18,10 @@ const ATTRS = ['data-testid', 'data-test', 'itemprop', 'role'];
 const GENERIC = new Set(['div', 'span', 'section', 'li']);
 /** A more specific selector wins over a broader one that covers at most this much more. */
 const TOLERANCE = 0.2;
-/** With fewer items, coverage says too little to suggest required parts. */
+/** With fewer peers, coverage says too little to suggest required parts. */
 const MIN_ITEMS_FOR_REQUIRED = 3;
+/** Items with at least this share of the reference's parts are its peers (not ads or headings). */
+const PEER_SHARE = 0.5;
 const MAX_TEXT = 60;
 
 const round = (n: number) => Math.round(n * 1e4) / 1e4;
@@ -86,9 +88,11 @@ function coverage(items: Element[], sel: Selector): number {
 /**
  * Describes the structure of a well-formed item as parts (links, time, headings, images, text,
  * buttons, `data-testid` elements), each with a selector relative to the item, in document
- * order. Parts most items have (`requiredCoverage`) are suggested as required, the rest as
- * optional (a thumbnail only some posts have), so the host can let the user adjust them before
- * saving `{ parts }` as `FeedDescriptor.structure`. Pass the feed's items (a few dozen at most).
+ * order. The reference's peers are the items with at least half of its parts, which leaves out
+ * ads and headings; parts nearly all peers have (`requiredCoverage`) are suggested as required,
+ * the rest as optional (a thumbnail only some posts have), so the host can let the user adjust
+ * them before saving `{ parts }` as `FeedDescriptor.structure`. Pass the feed's items (a few
+ * dozen at most).
  */
 export function suggestStructure(
   items: Element[],
@@ -97,7 +101,7 @@ export function suggestStructure(
   const root = opts.reference ?? items[0];
   if (!root) return [];
   const pool = items.length ? items : [root];
-  const requiredCoverage = opts.requiredCoverage ?? 0.7;
+  const requiredCoverage = opts.requiredCoverage ?? 0.9;
   const maxParts = opts.maxParts ?? 16;
   const parts: (StructureCandidate & { order: number; positional: boolean })[] = [];
   const seen = new Set<string>();
@@ -113,7 +117,7 @@ export function suggestStructure(
       normalizeText(el, 500) || el.getAttribute('alt') || el.getAttribute('aria-label') || '';
     parts.push({
       selector: css(pick.value),
-      required: pool.length >= MIN_ITEMS_FOR_REQUIRED && pick.cov >= requiredCoverage,
+      required: false,
       label: label(el),
       coverage: round(pick.cov),
       text: text.trim().slice(0, MAX_TEXT),
@@ -122,11 +126,18 @@ export function suggestStructure(
     });
   });
   const rank = (p: (typeof parts)[number]) => p.coverage + (p.positional ? 0 : 0.5);
-  return parts
+  const kept = parts
     .sort((a, b) => rank(b) - rank(a) || a.order - b.order)
     .slice(0, maxParts)
-    .sort((a, b) => a.order - b.order)
-    .map(({ order: _, positional: __, ...p }) => p);
+    .sort((a, b) => a.order - b.order);
+  const hits = (it: Element) => kept.filter((p) => has(it, p.selector)).length;
+  const peers = pool.filter((it) => it === root || hits(it) >= kept.length * PEER_SHARE);
+  if (!peers.includes(root)) peers.push(root);
+  return kept.map(({ order: _, positional: __, ...p }) => ({
+    ...p,
+    required:
+      peers.length >= MIN_ITEMS_FOR_REQUIRED && coverage(peers, p.selector) >= requiredCoverage,
+  }));
 }
 
 /** Checks an item against a structure: required parts it lacks and optional parts it has. */
