@@ -154,13 +154,16 @@ disposeDocument(doc);
 - **FeedDescriptor**: one feed as serializable data: a `container` selector (may match several
   containers), an `item` selector evaluated **relative to each container** (generated selectors look
   like `:scope > article`), `exclude`/`include` rules, `source`, `confidence`, `confirmed`, and an
-  optional `permalink` selector (relative to the item) for the link that identifies each item.
+  optional `permalink` selector (relative to the item) for the link that identifies each item, and
+  optional `permalinkParams`: the query parameters that identify it (e.g. `['v']` for YouTube's
+  `watch?v=…&pp=…`; `[]` drops the query).
 - **SiteProfile**: every descriptor for one page type, keyed by `hostname` + `pathPattern`
   (`*` = one segment, `**` = any number, `post-*` = wildcard within a segment).
   `matchProfile(url, profiles)` picks the most specific match. Profiles are plain JSON
   (`serializeProfile` / `parseProfile`, which validates and migrates by `version`). **You** store them.
 - **Unified feed**: items of every feed (and of ingested pages) in document order, de-duplicated by a
-  stable id (canonical permalink, else text hash). The permalink is the descriptor's `permalink`
+  stable id (canonical permalink, else text hash). The canonical permalink drops the hash and sorts
+  the query; it keeps only `permalinkParams` when set, else drops tracking parameters (`utm_*`, `fbclid`, …). The permalink is the descriptor's `permalink`
   link when it finds one, else the first `rel=bookmark`/`u-url`/`itemprop=url` link, link with a
   `<time>`, heading link, or the deepest link, and is exposed as `item.permalink`. Each `FeedItem` has `status`, `reasons`
   (rule id, origin `builtin`/`user`/`llm`, criteria and confidence for LLM rules), `parts` (sub-elements
@@ -179,7 +182,8 @@ disposeDocument(doc);
 | `detectFeeds(doc, opts?)` | core | Propose feeds (heuristic, optional LLM refine). Never throws for LLM errors (`onLlmError`). |
 | `inspectFromElement(el, { minItems? })` | core | Walk up from any element to the nearest repeating group. |
 | `detectFromSelector(doc, { container?, item? })` | core | Build a descriptor from CSS/XPath selectors. |
-| `suggestPermalinks(items, baseUrl)` | core | Rank an item's links as permalink candidates (`{ selector, url, text, score }`), checked against the other items. |
+| `suggestPermalinks(items, baseUrl)` | core | Rank an item's links as permalink candidates (`{ selector, url, text, score, params }`), checked against the other items. |
+| `suggestPermalinkParams(items, baseUrl, sel?)` | core | Query parameters of the items' permalinks (`{ name, value, coverage, uniqueness }`), to choose `permalinkParams` from. |
 | `captureSample(doc, descriptor, { items?, maxBytes?, maxText? })` | core | Small stripped HTML copy of a feed's first items (default 2, 20 KB) to check edited selectors offline. |
 | `validateSelector(doc, sel)` | core | `{ valid, count, error? }`; never throws. |
 | `matchSelector(doc, sel, { root? })` | core | Matched elements, plus `boxes` when the page has layout. |

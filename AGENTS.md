@@ -117,8 +117,8 @@ Package entry points (`package.json` `exports`): `.` → `src/index.ts`, `./over
 - **Selectors.** A container selector is evaluated on the document and may match several
   containers. An item selector is evaluated **relative to each container** (generated ones look
   like `:scope > article.post`), and non-descendants are dropped.
-- **Item ids** (`feed/item-id.ts`) use the canonical permalink (hash and `utm_*`/`fbclid`/… removed,
-  query sorted), else a text hash. An item with no link and less than `minItemTextLength` (10)
+- **Item ids** (`feed/item-id.ts`) use the canonical permalink (hash removed, query sorted, only the
+  descriptor's `permalinkParams` kept when set, else `utm_*`/`fbclid`/… removed), else a text hash. An item with no link and less than `minItemTextLength` (10)
   characters is a **placeholder**: it is tracked but not emitted until it fills in. Ids dedupe
   across feeds, re-renders, and ingests.
 - **Exclusion precedence** (`exclude/engine.ts`). Rank: user selector rule 3 > LLM selector rule

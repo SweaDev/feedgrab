@@ -10,7 +10,7 @@ export type ItemIdentity = { id: string; permalink?: string };
 
 /**
  * Stable identity: a hash of the canonical permalink (from `permalink` when it finds a link,
- * else the heuristic), else of the text (when it has at least `minItemTextLength`
+ * else the heuristic; keeping only `params` when given), else of the text (when it has at least `minItemTextLength`
  * characters), else null (a placeholder).
  */
 export function itemIdentity(
@@ -18,9 +18,10 @@ export function itemIdentity(
   baseUrl: string,
   minItemTextLength = 10,
   permalink?: Selector,
+  params?: readonly string[],
 ): ItemIdentity | null {
   const link = findPermalink(el, baseUrl, permalink);
-  const url = link ? canonicalUrl(link.getAttribute('href') ?? '', baseUrl) : null;
+  const url = link ? canonicalUrl(link.getAttribute('href') ?? '', baseUrl, params) : null;
   if (url) return { id: `i_${hashString(`L|${url}`)}`, permalink: url };
   if (textLength(el) >= minItemTextLength)
     return { id: `i_${hashString(`T|${normalizeText(el, 500)}`)}` };
@@ -33,6 +34,7 @@ export function itemId(
   baseUrl: string,
   minItemTextLength = 10,
   permalink?: Selector,
+  params?: readonly string[],
 ): string | null {
-  return itemIdentity(el, baseUrl, minItemTextLength, permalink)?.id ?? null;
+  return itemIdentity(el, baseUrl, minItemTextLength, permalink, params)?.id ?? null;
 }
