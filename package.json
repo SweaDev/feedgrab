@@ -1,6 +1,6 @@
 {
   "name": "feedgrab",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Detect, describe and iterate content feeds in web pages (extension, headless and server-side).",
   "type": "module",
   "license": "MIT",
