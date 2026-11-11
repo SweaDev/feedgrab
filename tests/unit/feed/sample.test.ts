@@ -93,3 +93,25 @@ test('descriptor permalink: parsed, used for ids and exposed on items', () => {
   expect(auto!.permalink).toBe('https://social.test/u1/status/1');
   expect(auto!.id).not.toBe(first!.id);
 });
+
+test('permalinkParams: parsed, keeps only those params in ids and item.permalink', () => {
+  const html = ['p1', 'p2']
+    .map(
+      (pp) => `<article><a href="/watch?pp=${pp}&v=abc"><time>1h</time></a> same video</article>`,
+    )
+    .join('');
+  const doc = parseHtml(`<main><section>${html}</section></main>`, URL);
+  const all = openFeed(doc, createProfile({ url: URL, feeds: [descriptor()] }), { live: false });
+  expect(all.items().map((i) => i.permalink)).toEqual([
+    'https://social.test/watch?pp=p1&v=abc',
+    'https://social.test/watch?pp=p2&v=abc',
+  ]);
+  const d = descriptor({ permalinkParams: ['v'] });
+  const profile = parseProfile(serializeProfile(createProfile({ url: URL, feeds: [d] })));
+  expect(profile.feeds[0]!.permalinkParams).toEqual(['v']);
+  const items = openFeed(doc, profile, { live: false }).items();
+  expect(items.map((i) => i.permalink)).toEqual(['https://social.test/watch?v=abc']);
+  expect(() =>
+    parseProfile(serializeProfile({ ...profile, feeds: [{ ...d, permalinkParams: [''] }] })),
+  ).toThrow();
+});

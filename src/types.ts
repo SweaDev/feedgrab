@@ -49,6 +49,12 @@ export type FeedDescriptor = {
    * Used for item ids and `FeedItem.permalink`; the heuristic applies when it is unset or finds no link.
    */
   permalink?: Selector;
+  /**
+   * Query parameters that identify the item (e.g. `['v']` for YouTube's `watch?v=`). When set,
+   * only these are kept in the permalink and its id (`[]` drops the query string); when unset,
+   * only known tracking parameters (`utm_*`, `fbclid`, …) are removed.
+   */
+  permalinkParams?: string[];
 };
 
 /** Every feed descriptor for one page type (hostname + path pattern). */
@@ -107,6 +113,19 @@ export type PermalinkCandidate = {
   text: string;
   /** Higher is more likely the permalink (rounded to 4 decimals). */
   score: number;
+  /** Query parameters of this link across the items (see `suggestPermalinkParams`). */
+  params: PermalinkParam[];
+};
+
+/** A query parameter of items' permalinks, to choose `FeedDescriptor.permalinkParams` from. */
+export type PermalinkParam = {
+  name: string;
+  /** Value in the first permalink that has it. */
+  value: string;
+  /** Share of the items whose permalink has it (rounded to 4 decimals). */
+  coverage: number;
+  /** Distinct values per permalink that has it; 0 when fewer than 2 have it (rounded to 4 decimals). */
+  uniqueness: number;
 };
 
 /** Options for `captureSample`. */

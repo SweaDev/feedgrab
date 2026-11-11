@@ -100,7 +100,7 @@ If a profile stops matching (because the site's layout changed), the feed emits 
 - **Live DOM** (extension, headless): a `MutationObserver` watches each confirmed container, so items are picked up incrementally as infinite scroll adds them.
   - Containers that are re-mounted (SPA navigation, React re-render) are found again through their descriptor.
 - **Parsed DOM** (server-side): `feed.ingest(docOrHtml, { url? })` runs the same descriptors against a follow-up document (next page, "load more" response) and appends its items.
-- Each item gets a stable id: a hash of its link/permalink if it has one, otherwise a hash of its text. Ids are used for de-duplication in three cases: when virtualized lists re-render items, across feeds, and across ingests.
+- Each item gets a stable id: a hash of its link/permalink if it has one (keeping only the descriptor's `permalinkParams` when set), otherwise a hash of its text. Ids are used for de-duplication in three cases: when virtualized lists re-render items, across feeds, and across ingests.
 - Items from every feed are merged in document order, and ingested documents are appended in ingest order. Each item keeps its `feedId`.
 - Loading more items (scrolling, clicking "load more", fetching the next page) is left to the page, the user, or the consumer. The library only observes or ingests.
 
@@ -142,7 +142,8 @@ inspectFromElement(el: Element, opts?: { minItems?: number }): FeedDescriptor
 detectFromSelector(doc: Document, sel: SelectorInput): FeedDescriptor
 validateSelector(doc: Document, sel: Selector): { valid: boolean; count: number; error?: string }
 matchSelector(doc: Document, sel: Selector, opts?: { root?: Element }): { elements: Element[]; boxes?: Box[] }
-suggestPermalinks(items: Element[], baseUrl: string): PermalinkCandidate[]   // { selector, url, text, score }, best first
+suggestPermalinks(items: Element[], baseUrl: string): PermalinkCandidate[]   // { selector, url, text, score, params }, best first
+suggestPermalinkParams(items: Element[], baseUrl: string, sel?: Selector): PermalinkParam[]   // { name, value, coverage, uniqueness }, by name
 captureSample(doc: Document, d: FeedDescriptor, opts?: { items?; maxBytes?; maxText? }): string | null
 registerXPathEngine(engine: (expr: string, contextNode: Node) => Node[]): void   // for DOMs without document.evaluate
 
@@ -180,6 +181,7 @@ type FeedDescriptor = {
   exclude: Rule[]; include: Rule[];                  // include: selector rules only
   source: 'heuristic' | 'llm' | 'inspect' | 'manual'; confidence: number; confirmed: boolean;
   permalink?: Selector;                              // item-relative; drives ids and item.permalink
+  permalinkParams?: string[];                        // query params kept in the permalink ([] = none); unset = drop tracking params
 }
 type SiteProfile = { version: number; hostname: string; pathPattern: string; feeds: FeedDescriptor[]; updatedAt?: string }
 type Selector = { type: 'css' | 'xpath'; value: string }

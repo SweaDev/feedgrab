@@ -1,7 +1,7 @@
 import { evaluateSelector } from '../selector/evaluate';
 import { cssEscape } from '../selector/generate';
 import { stableClasses } from '../signature/classes';
-import type { PermalinkCandidate, Selector } from '../types';
+import type { PermalinkCandidate, PermalinkParam, Selector } from '../types';
 
 const TRACKING = /^(utm_.*|fbclid|gclid|mc_cid|mc_eid|ref|ref_src)$/i;
 const HEADING = 'h1, h2, h3, h4, h5, h6, [role="heading"]';
@@ -10,12 +10,21 @@ const ATTRS = ['data-testid', 'data-test', 'itemprop', 'role'];
 const MAX_CANDIDATES = 30;
 const MAX_TEXT = 60;
 
-/** Canonical URL: hash dropped, tracking params removed, remaining params sorted. */
-export function canonicalUrl(href: string, baseUrl: string): string | null {
+/**
+ * Canonical URL: hash dropped, params sorted. Only the params in `keep` stay when it is given,
+ * else all but tracking params.
+ */
+export function canonicalUrl(
+  href: string,
+  baseUrl: string,
+  keep?: readonly string[],
+): string | null {
   try {
     const url = new globalThis.URL(href, baseUrl);
     url.hash = '';
-    const params = [...url.searchParams.entries()].filter(([k]) => !TRACKING.test(k));
+    const params = [...url.searchParams.entries()].filter(([k]) =>
+      keep ? keep.includes(k) : !TRACKING.test(k),
+    );
     params.sort(([a, av], [b, bv]) =>
       a === b ? (av < bv ? -1 : av > bv ? 1 : 0) : a < b ? -1 : 1,
     );
@@ -165,6 +174,49 @@ function relativeSelector(root: Element, a: Element, samples: Element[]): string
   return best;
 }
 
+const round = (n: number) => Math.round(n * 1e4) / 1e4;
+
+/** Per-param stats over canonical permalinks of `total` items, sorted by name. */
+function paramStats(urls: string[], total: number): PermalinkParam[] {
+  const values = new Map<string, string[]>();
+  for (const u of urls) {
+    const seen = new Set<string>();
+    for (const [k, v] of new globalThis.URL(u).searchParams) {
+      if (seen.has(k)) continue;
+      seen.add(k);
+      values.set(k, [...(values.get(k) ?? []), v]);
+    }
+  }
+  return [...values.keys()].sort().map((name) => {
+    const vs = values.get(name) ?? [];
+    return {
+      name,
+      value: vs[0] ?? '',
+      coverage: total ? round(vs.length / total) : 0,
+      uniqueness: vs.length > 1 ? round(new Set(vs).size / vs.length) : 0,
+    };
+  });
+}
+
+/**
+ * Query parameters of the items' permalinks (found as for ids: by `sel`, else the heuristic), to
+ * choose `FeedDescriptor.permalinkParams` from. Tracking params are left out. A param that
+ * identifies the item usually has coverage and uniqueness 1, but so may per-item analytics
+ * params (like YouTube's `pp`), so let the user confirm.
+ */
+export function suggestPermalinkParams(
+  items: Element[],
+  baseUrl: string,
+  sel?: Selector,
+): PermalinkParam[] {
+  const urls = items.flatMap((el) => {
+    const a = findPermalink(el, baseUrl, sel);
+    const u = a && canonicalUrl(a.getAttribute('href') ?? '', baseUrl);
+    return u ? [u] : [];
+  });
+  return paramStats(urls, items.length);
+}
+
 const sameSite = (url: string, baseUrl: string) => {
   try {
     const host = (u: string) => new globalThis.URL(u).hostname.replace(/^www\./, '');
@@ -212,7 +264,8 @@ export function suggestPermalinks(items: Element[], baseUrl: string): PermalinkC
       selector: { type: 'css', value },
       url,
       text: text.trim().slice(0, MAX_TEXT),
-      score: Math.round(score * 1e4) / 1e4,
+      score: round(score),
+      params: paramStats(found, items.length),
       order: ranked.length,
     });
     if (ranked.length >= MAX_CANDIDATES) break;

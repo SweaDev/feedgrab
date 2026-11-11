@@ -1,5 +1,10 @@
 import { expect, test } from 'bun:test';
-import { findPermalink, suggestPermalinks } from '../../../src/detect/permalink';
+import {
+  canonicalUrl,
+  findPermalink,
+  suggestPermalinkParams,
+  suggestPermalinks,
+} from '../../../src/detect/permalink';
 import { parseHtml } from '../../../src/server';
 
 const BASE = 'https://social.test/home';
@@ -78,4 +83,28 @@ test('suggestPermalinks prefers heading links and links that differ per item', (
   const [top] = suggestPermalinks(els, BASE);
   expect(top!.url).toBe('https://social.test/2026/a');
   expect(top!.selector.value).toBe('h3 a');
+});
+
+test('canonicalUrl keeps only the listed params when given', () => {
+  const href = '/watch?pp=ugUH%3D%3D&v=abc&utm_source=x#t=1';
+  expect(canonicalUrl(href, BASE)).toBe('https://social.test/watch?pp=ugUH%3D%3D&v=abc');
+  expect(canonicalUrl(href, BASE, ['v'])).toBe('https://social.test/watch?v=abc');
+  expect(canonicalUrl(href, BASE, ['utm_source'])).toBe('https://social.test/watch?utm_source=x');
+  expect(canonicalUrl(href, BASE, [])).toBe('https://social.test/watch');
+});
+
+test('suggestPermalinkParams and candidate params report coverage and uniqueness', () => {
+  const video = (id: string, pp: string, extra = '') =>
+    `<div><h3><a href="/watch?v=${id}&pp=${pp}${extra}">Video ${id}</a></h3></div>`;
+  const els = items(video('a', 'x', '&t=5&utm_medium=s') + video('b', 'x') + video('c', 'y'));
+  const params = suggestPermalinkParams(els, BASE);
+  expect(params).toEqual([
+    { name: 'pp', value: 'x', coverage: 1, uniqueness: 0.6667 },
+    { name: 't', value: '5', coverage: 0.3333, uniqueness: 0 },
+    { name: 'v', value: 'a', coverage: 1, uniqueness: 1 },
+  ]);
+  expect(suggestPermalinkParams(els, BASE, { type: 'css', value: 'h3 a' })).toEqual(params);
+  const [top] = suggestPermalinks(els, BASE);
+  expect(top!.params).toEqual(params);
+  expect(suggestPermalinkParams([], BASE)).toEqual([]);
 });

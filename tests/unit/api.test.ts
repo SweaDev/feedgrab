@@ -14,6 +14,7 @@ test('feedgrab (core) value exports', () => {
       'detectFeeds',
       'inspectFromElement',
       'detectFromSelector',
+      'suggestPermalinkParams',
       'suggestPermalinks',
       'captureSample',
       'validateSelector',

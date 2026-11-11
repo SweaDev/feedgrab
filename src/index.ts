@@ -1,7 +1,7 @@
 export { type RemovalHandle, type RemovalMode, removeItem, removeParts } from './cleanup/remove';
 export { detectFeeds } from './detect/detect';
 export { detectFromSelector, inspectFromElement } from './detect/inspect';
-export { suggestPermalinks } from './detect/permalink';
+export { suggestPermalinkParams, suggestPermalinks } from './detect/permalink';
 export type { ErrorCode } from './errors';
 export { FeedgrabError } from './errors';
 export type { BuiltinRule } from './exclude/builtin';
