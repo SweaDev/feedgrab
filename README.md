@@ -21,8 +21,8 @@ Feedgrab is not published to npm yet. Each [GitHub release](https://github.com/S
 has a prebuilt package tarball attached. Install it by URL with any package manager:
 
 ```sh
-bun add https://github.com/SweaDev/feedgrab/releases/download/v0.2.0/feedgrab-0.2.0.tgz
-# or: npm i https://github.com/SweaDev/feedgrab/releases/download/v0.2.0/feedgrab-0.2.0.tgz
+bun add https://github.com/SweaDev/feedgrab/releases/download/v0.3.0/feedgrab-0.3.0.tgz
+# or: npm i https://github.com/SweaDev/feedgrab/releases/download/v0.3.0/feedgrab-0.3.0.tgz
 ```
 
 To upgrade, install the tarball URL of a newer release. Installing straight from the repository
