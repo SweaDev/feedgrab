@@ -13,6 +13,8 @@ export type PanelDeps = {
   onPick(kind: PickRequest): void;
   onSave(): void;
   onCancel(): void;
+  /** "Feed N" was clicked: show that feed (scroll to its first item). */
+  onShow?(id: string): void;
 };
 
 const COUNT_DEBOUNCE_MS = 150;
@@ -257,7 +259,11 @@ export function renderPanel(
             type: 'button',
             'data-fd-action': 'select',
             'data-fd-id': p.id,
-            onclick: () => dispatch({ type: 'select', id: p.id }),
+            title: 'Select this feed and scroll to its first item',
+            onclick: () => {
+              dispatch({ type: 'select', id: p.id });
+              deps.onShow?.(p.id);
+            },
           },
           `Feed ${i + 1}`,
         ),

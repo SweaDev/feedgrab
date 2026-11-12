@@ -67,3 +67,52 @@ test('cancel rejects with OVERLAY_CANCELLED and cleans up', async ({ page }) => 
   expect(await outcome(page)).toEqual({ ok: false, code: 'OVERLAY_CANCELLED' });
   await expect(page.locator('[data-feedgrab-overlay]')).toHaveCount(0);
 });
+
+test('the panel drags, collapses, and Feed N scrolls below a fixed header', async ({ page }) => {
+  await openFixture(page, 'social-feed');
+  await page.evaluate(async () => {
+    const g = globalThis as unknown as PageGlobal;
+    const header = Object.assign(document.createElement('header'), { id: 'fixed-top' });
+    header.style.cssText = 'position:fixed;top:0;left:0;right:0;height:60px;background:#eee';
+    const spacer = Object.assign(document.createElement('div'), { id: 'spacer' });
+    spacer.style.height = '2000px';
+    document.body.prepend(header, spacer);
+    const after = Object.assign(document.createElement('div'), { id: 'after' });
+    after.style.height = '2000px';
+    document.body.append(after);
+    const moves: unknown[] = [];
+    g.__moves = moves;
+    const proposals = await g.Feedgrab.detectFeeds(document);
+    void g.Feedgrab.openOverlay(document, proposals, {
+      title: 'Step 1 of 4 · Feeds',
+      position: { left: 20, top: 40 },
+      onMove: (p: unknown) => moves.push(p),
+    }).catch(() => {});
+  });
+  const panel = page.locator('[data-feedgrab-overlay] .fd-panel');
+  const bar = page.locator('[data-feedgrab-overlay] .fd-bar');
+  await expect(bar).toContainText('Step 1 of 4 · Feeds');
+  expect(await panel.boundingBox()).toMatchObject({ x: 20, y: 40 });
+
+  const b = (await bar.boundingBox())!;
+  await page.mouse.move(b.x + 20, b.y + b.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(b.x + 220, b.y + b.height / 2 + 100, { steps: 5 });
+  await page.mouse.up();
+  expect(await panel.boundingBox()).toMatchObject({ x: 220, y: 140 });
+  expect(await page.evaluate(() => (globalThis as unknown as PageGlobal).__moves)).toEqual([
+    { left: 220, top: 140 },
+  ]);
+
+  const full = (await panel.boundingBox())!.height;
+  await action(page, 'collapse').click();
+  expect((await panel.boundingBox())!.height).toBeLessThan(Math.min(full, 50));
+  await action(page, 'collapse').click();
+
+  await action(page, 'select').first().click();
+  const top = await page.evaluate(
+    () => document.querySelector('.timeline > article')!.getBoundingClientRect().top,
+  );
+  expect(top).toBeCloseTo(68, 0);
+  await expect(page.locator('[data-feedgrab-overlay] .fd-box.fd-hover')).toHaveCount(1);
+});

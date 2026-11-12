@@ -210,7 +210,7 @@ disposeDocument(doc);
 | `createLlmProxy(send)` | core | Page-side LLM backend that forwards requests and validates responses. |
 | `registerXPathEngine(engine)` | core | XPath fallback for DOMs without `document.evaluate`. |
 | `BUILTIN_RULES`, `CURRENT_PROFILE_VERSION`, `FeedgrabError` | core | Constants and the error class (`code`, `details`). |
-| `openOverlay(doc, proposals, opts?)` | overlay | Confirm/edit UI; resolves with a `SiteProfile`. |
+| `openOverlay(doc, proposals, opts?)` | overlay | Confirm/edit UI with a draggable, collapsible panel (`title`, `position`, `onMove`); resolves with a `SiteProfile`. |
 | `pickElement(doc, { filter?, signal? })` | overlay | Let the user click an element. |
 | `parseHtml(html, url?)` / `disposeDocument(doc)` | server | Parse HTML with happy-dom (no scripts, no resource loading). |
 | `handleLlmRequest(req, model, opts?)` | llm | Host-side handler for proxied requests. |
@@ -254,6 +254,21 @@ openOverlay(document, proposals, {
 The theme becomes `--fd-*` custom properties on the shadow root's `:host`. The overlay lives in a
 single `<div data-feedgrab-overlay>` with an open shadow root, draws outlines over the page,
 and never changes feed nodes.
+
+The panel's header drags it (or the arrow keys move it once the header has focus), and its button
+collapses the panel so it stops covering items. Pass `title` for the header text, and `position`
+with `onMove` to reopen it where the user last left it:
+
+```ts
+openOverlay(document, proposals, {
+  title: 'Step 1 of 4 · Feeds',
+  position: saved, // { left, top } in viewport px, kept inside the viewport
+  onMove: (p) => save(p),
+});
+```
+
+Clicking **Feed N** selects that feed, scrolls its first item to the top of the viewport (below a
+fixed or sticky site header) and outlines it briefly.
 
 ## Read-only guarantee
 

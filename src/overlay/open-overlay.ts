@@ -3,14 +3,16 @@ import { hasLayout } from '../env/dom';
 import { timers } from '../env/timers';
 import { FeedgrabError } from '../errors';
 import { openFeed } from '../feed/unified-feed';
-import { resolveContainers } from '../selector/evaluate';
+import { resolveContainers, resolveItems } from '../selector/evaluate';
 import { cssEscape } from '../selector/generate';
 import { stableClasses } from '../signature/classes';
 import type { FeedDescriptor, LlmBackend, SiteProfile, UnifiedFeed } from '../types';
+import { type FrameOptions, framePanel } from './frame';
 import { createHighlighter, type HighlightEntry } from './highlighter';
 import { mountHost } from './host';
 import { type PickRequest, renderPanel } from './panel';
 import { pickElement } from './picker';
+import { scrollToTop } from './scroll';
 import { type Action, initState, type OverlayState, reduce, toProfile } from './state';
 import type { OverlayTheme } from './theme';
 
@@ -23,9 +25,17 @@ export type OverlayOptions = {
   llm?: LlmBackend;
   builtinExclusions?: boolean;
   signal?: AbortSignal;
+  /** Panel header text (default "Feeds"). */
+  title?: FrameOptions['title'];
+  /** Where the panel starts, e.g. where `onMove` last reported it. */
+  position?: FrameOptions['position'];
+  /** Called after the user drags the panel (or moves it with the arrow keys). */
+  onMove?: FrameOptions['onMove'];
 };
 
 const PREVIEW_DEBOUNCE_MS = 200;
+/** How long the first item of a feed stays outlined after "Feed N" scrolls to it. */
+const FLASH_MS = 1500;
 
 function relativeSelector(el: Element): string {
   return [el.tagName.toLowerCase(), ...stableClasses(el).map((c) => `.${cssEscape(c)}`)].join('');
@@ -48,6 +58,13 @@ export async function openOverlay(
   const url = opts.url ?? doc.URL;
   const mounted = mountHost(doc, { theme: opts.theme, customCss: opts.customCss });
   const highlighter = createHighlighter(doc, mounted.layer);
+  const frame = framePanel(mounted.panel, {
+    ...(opts.title !== undefined && { title: opts.title }),
+    ...(opts.position && { position: opts.position }),
+    ...(opts.onMove && { onMove: opts.onMove }),
+  });
+  let flash: Element | null = null;
+  let flashTimer: unknown = null;
   let state: OverlayState = initState(proposals, { url, existing: opts.existing });
   let preview: UnifiedFeed | null = null;
   let previewTimer: unknown = null;
@@ -69,6 +86,7 @@ export async function openOverlay(
         entries.push({ el: item.element, kind: item.status === 'kept' ? 'item' : item.status });
         for (const part of item.parts) entries.push({ el: part.element, kind: 'part' });
       }
+      if (flash?.isConnected) entries.push({ el: flash, kind: 'hover' });
       highlighter.set(entries);
     };
 
@@ -108,7 +126,29 @@ export async function openOverlay(
     };
 
     const render = () =>
-      renderPanel(mounted.panel, state, dispatch, { doc, onPick, onSave, onCancel });
+      renderPanel(frame.body, state, dispatch, { doc, onPick, onSave, onCancel, onShow });
+
+    /** Scrolls a feed's first item (else its container) to the top and outlines it briefly. */
+    function onShow(id: string) {
+      const p = state.proposals.find((x) => x.id === id);
+      if (!p || settled) return;
+      try {
+        const [container] = resolveContainers(doc, p);
+        if (!container) return;
+        const first = resolveItems(container, p)[0] ?? container;
+        scrollToTop(first, mounted.host);
+        flash = first;
+        if (flashTimer !== null) timers.clearTimeout(flashTimer);
+        flashTimer = timers.setTimeout(() => {
+          flashTimer = null;
+          flash = null;
+          if (!settled) highlight();
+        }, FLASH_MS);
+        highlight();
+      } catch {
+        // invalid selector: nothing to show
+      }
+    }
 
     function dispatch(action: Action) {
       if (settled) return;
@@ -158,6 +198,8 @@ export async function openOverlay(
       settled = true;
       pickAbort?.abort();
       if (previewTimer !== null) timers.clearTimeout(previewTimer);
+      if (flashTimer !== null) timers.clearTimeout(flashTimer);
+      frame.destroy();
       preview?.dispose();
       preview = null;
       highlighter.destroy();
