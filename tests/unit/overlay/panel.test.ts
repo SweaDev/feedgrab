@@ -17,6 +17,7 @@ async function setup() {
     onPick: (k: string) => picks.push(k),
     onSave: () => picks.push('save'),
     onCancel: () => picks.push('cancel'),
+    onShow: (id: string) => picks.push(`show:${id}`),
   };
   const dispatch = (a: Action) => {
     actions.push(a);
@@ -100,4 +101,12 @@ test('toggling accept, adding rules, save and pick buttons dispatch', async () =
   s.q('pick-item').click();
   s.q('save').click();
   expect(s.picks).toEqual(['item', 'save']);
+});
+
+test('Feed N selects the feed and asks to show it', async () => {
+  const t = await setup();
+  const id = t.state.proposals[0]!.id;
+  (t.root.querySelector(`[data-fd-action="select"][data-fd-id="${id}"]`) as HTMLElement).click();
+  expect(t.state.selectedId).toBe(id);
+  expect(t.picks).toContain(`show:${id}`);
 });

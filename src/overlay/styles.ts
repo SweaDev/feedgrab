@@ -25,6 +25,19 @@ export const BASE_CSS = `
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 .fd-panel:empty { display: none; }
+.fd-bar {
+  position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 6px;
+  margin: -10px -10px 8px; padding: 4px 4px 4px 10px; background: var(--fd-color-panel-bg);
+  border-bottom: 1px solid var(--fd-color-accent); cursor: grab; user-select: none; touch-action: none;
+}
+.fd-bar:focus-visible { outline: 2px solid var(--fd-color-accent); outline-offset: -2px; }
+.fd-bar.fd-dragging { cursor: grabbing; }
+.fd-grip { opacity: 0.6; letter-spacing: -1px; }
+.fd-title { flex: 1; color: var(--fd-color-accent); font-size: 0.85em; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.fd-panel .fd-fold { border: 0; margin: 0; padding: 0 8px; font-size: 1.1em; }
+.fd-panel.fd-collapsed { overflow: hidden; padding-bottom: 0; }
+.fd-panel.fd-collapsed .fd-bar { margin-bottom: 0; border-bottom: 0; }
+.fd-panel.fd-collapsed .fd-body { display: none; }
 .fd-pos-top-right { top: 12px; right: 12px; }
 .fd-pos-top-left { top: 12px; left: 12px; }
 .fd-pos-bottom-right { bottom: 12px; right: 12px; }

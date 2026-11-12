@@ -1,3 +1,4 @@
+export type { FrameOptions, PanelPosition } from './frame';
 export type { HighlightEntry, Highlighter } from './highlighter';
 export { type OverlayOptions, openOverlay } from './open-overlay';
 export type { PanelDeps, PickRequest } from './panel';
