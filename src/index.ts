@@ -7,6 +7,7 @@ export type { ErrorCode } from './errors';
 export { FeedgrabError } from './errors';
 export type { BuiltinRule } from './exclude/builtin';
 export { BUILTIN_RULES } from './exclude/builtin';
+export { canonicalUrl, permalinkId } from './feed/item-id';
 export { captureSample } from './feed/sample';
 export { openFeed } from './feed/unified-feed';
 export type * from './llm/contract';

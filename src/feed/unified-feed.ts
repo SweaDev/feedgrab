@@ -146,8 +146,15 @@ export class UnifiedFeedImpl implements UnifiedFeed {
   }
 
   identityOf(el: Element, state: FeedState, baseUrl = this.baseUrl): ItemIdentity | null {
-    const { permalink, permalinkParams } = state.descriptor;
-    return itemIdentity(el, baseUrl, this.minItemTextLength, permalink, permalinkParams);
+    const { permalink, permalinkParams, permalinkIgnore } = state.descriptor;
+    return itemIdentity(
+      el,
+      baseUrl,
+      this.minItemTextLength,
+      permalink,
+      permalinkParams,
+      permalinkIgnore,
+    );
   }
 
   /** Creates, evaluates and registers new items; returns them (events not emitted). */

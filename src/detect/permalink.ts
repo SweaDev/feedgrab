@@ -12,18 +12,19 @@ const MAX_TEXT = 60;
 
 /**
  * Canonical URL: hash dropped, params sorted. Only the params in `keep` stay when it is given,
- * else all but tracking params.
+ * else all but tracking params and those in `drop`.
  */
 export function canonicalUrl(
   href: string,
   baseUrl: string,
   keep?: readonly string[],
+  drop?: readonly string[],
 ): string | null {
   try {
     const url = new globalThis.URL(href, baseUrl);
     url.hash = '';
     const params = [...url.searchParams.entries()].filter(([k]) =>
-      keep ? keep.includes(k) : !TRACKING.test(k),
+      keep ? keep.includes(k) : !TRACKING.test(k) && !drop?.includes(k),
     );
     params.sort(([a, av], [b, bv]) =>
       a === b ? (av < bv ? -1 : av > bv ? 1 : 0) : a < b ? -1 : 1,

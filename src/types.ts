@@ -56,6 +56,12 @@ export type FeedDescriptor = {
    */
   permalinkParams?: string[];
   /**
+   * Query parameters to drop from the permalink and its id, besides the known tracking ones, when
+   * `permalinkParams` is unset (e.g. `['pp']` for YouTube). Lets a host ignore a site's analytics
+   * parameters in every feed while a feed's own `permalinkParams` still wins.
+   */
+  permalinkIgnore?: string[];
+  /**
    * The structure of a well-formed item, usually taken from one the user chose (see
    * `suggestStructure`). When it has required parts, items missing one are excluded (reason
    * kind `structure`) instead of being checked by the built-in signature-outlier rule.

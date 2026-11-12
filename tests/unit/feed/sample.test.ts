@@ -1,4 +1,5 @@
 import { expect, test } from 'bun:test';
+import { canonicalUrl, permalinkId } from '../../../src/feed/item-id';
 import { captureSample } from '../../../src/feed/sample';
 import { openFeed } from '../../../src/feed/unified-feed';
 import { createProfile, parseProfile, serializeProfile } from '../../../src/profile/profile';
@@ -114,4 +115,30 @@ test('permalinkParams: parsed, keeps only those params in ids and item.permalink
   expect(() =>
     parseProfile(serializeProfile({ ...profile, feeds: [{ ...d, permalinkParams: [''] }] })),
   ).toThrow();
+});
+
+test('permalinkIgnore: drops those params unless permalinkParams is set; ids match permalinkId', () => {
+  const html = ['p1', 'p2']
+    .map(
+      (pp) =>
+        `<article><a href="/watch?pp=${pp}&v=abc&t=9"><time>1h</time></a> same video</article>`,
+    )
+    .join('');
+  const doc = parseHtml(`<main><section>${html}</section></main>`, URL);
+  const d = descriptor({ permalinkIgnore: ['pp'] });
+  const profile = parseProfile(serializeProfile(createProfile({ url: URL, feeds: [d] })));
+  expect(profile.feeds[0]!.permalinkIgnore).toEqual(['pp']);
+  const items = openFeed(doc, profile, { live: false }).items();
+  expect(items.map((i) => i.permalink)).toEqual(['https://social.test/watch?t=9&v=abc']);
+  expect(items[0]!.id).toBe(permalinkId('https://social.test/watch?t=9&v=abc'));
+  expect(canonicalUrl('/watch?pp=x&v=abc&utm_source=y#c', URL, undefined, ['pp'])).toBe(
+    'https://social.test/watch?v=abc',
+  );
+
+  const own = descriptor({ permalinkIgnore: ['pp'], permalinkParams: ['pp', 'v'] });
+  const kept = openFeed(doc, createProfile({ url: URL, feeds: [own] }), { live: false }).items();
+  expect(kept.map((i) => i.permalink)).toEqual([
+    'https://social.test/watch?pp=p1&v=abc',
+    'https://social.test/watch?pp=p2&v=abc',
+  ]);
 });

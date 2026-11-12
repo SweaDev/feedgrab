@@ -20,6 +20,8 @@ test('feedgrab (core) value exports', () => {
       'matchStructure',
       'findReferenceItem',
       'captureSample',
+      'canonicalUrl',
+      'permalinkId',
       'validateSelector',
       'matchSelector',
       'openFeed',
