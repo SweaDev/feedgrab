@@ -156,7 +156,9 @@ disposeDocument(doc);
   like `:scope > article`), `exclude`/`include` rules, `source`, `confidence`, `confirmed`, and an
   optional `permalink` selector (relative to the item) for the link that identifies each item, and
   optional `permalinkParams`: the query parameters that identify it (e.g. `['v']` for YouTube's
-  `watch?v=…&pp=…`; `[]` drops the query), and an optional `structure`: the parts a well-formed
+  `watch?v=…&pp=…`; `[]` drops the query) or, when that's unset, optional `permalinkIgnore`: extra
+  parameters to drop besides the tracking ones (e.g. `['pp']`, set by a host for every feed of a
+  site), and an optional `structure`: the parts a well-formed
   item has (see below).
 - **Item structure**: `structure.parts` are item-relative selectors (time link, heading, image,
   action bar, …), each `required` or optional. Items missing a required part are `excluded` with
@@ -171,7 +173,7 @@ disposeDocument(doc);
   (`serializeProfile` / `parseProfile`, which validates and migrates by `version`). **You** store them.
 - **Unified feed**: items of every feed (and of ingested pages) in document order, de-duplicated by a
   stable id (canonical permalink, else text hash). The canonical permalink drops the hash and sorts
-  the query; it keeps only `permalinkParams` when set, else drops tracking parameters (`utm_*`, `fbclid`, …). The permalink is the descriptor's `permalink`
+  the query; it keeps only `permalinkParams` when set, else drops tracking parameters (`utm_*`, `fbclid`, …) and `permalinkIgnore`. The permalink is the descriptor's `permalink`
   link when it finds one, else the first `rel=bookmark`/`u-url`/`itemprop=url` link, link with a
   `<time>`, heading link, or the deepest link, and is exposed as `item.permalink`. Each `FeedItem` has `status`, `reasons`
   (rule id, origin `builtin`/`user`/`llm`, criteria and confidence for LLM rules), `parts` (sub-elements
@@ -192,6 +194,8 @@ disposeDocument(doc);
 | `detectFromSelector(doc, { container?, item? })` | core | Build a descriptor from CSS/XPath selectors. |
 | `suggestPermalinks(items, baseUrl, { reference? })` | core | Rank an item's links (default `items[0]`) as permalink candidates (`{ selector, url, text, score, params }`), checked against the other items. |
 | `suggestPermalinkParams(items, baseUrl, sel?)` | core | Query parameters of the items' permalinks (`{ name, value, coverage, uniqueness }`), to choose `permalinkParams` from. |
+| `canonicalUrl(href, baseUrl, keep?, drop?)` | core | The canonical permalink ids are based on (hash dropped, query sorted, `keep` only, else no tracking or `drop` params), or null. |
+| `permalinkId(url)` | core | The item id for a canonical permalink, e.g. to re-key stored items after `permalinkParams`/`permalinkIgnore` change. |
 | `captureSample(doc, descriptor, { items?, maxBytes?, maxText?, reference? })` | core | Small stripped HTML copy of some of a feed's items (default 2, 20 KB) to check edited selectors offline: the reference item (given, else the one `findReferenceItem` picks for the descriptor's `structure`) plus the first ones. |
 | `suggestStructure(items, { reference?, requiredCoverage?, maxParts? })` | core | Parts of a well-formed item (`{ selector, required, label, coverage, text }`), to save as `descriptor.structure` after the user adjusts them. |
 | `matchStructure(item, structure)` | core | `{ ok, missing, optional }`: whether an item has every required part. |

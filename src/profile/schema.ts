@@ -51,6 +51,7 @@ export const FeedDescriptorSchema = z.object({
   confirmed: z.boolean(),
   permalink: z.optional(SelectorSchema),
   permalinkParams: z.optional(z.array(nonEmpty())),
+  permalinkIgnore: z.optional(z.array(nonEmpty())),
   structure: z.optional(ItemStructureSchema),
 });
 
