@@ -16,9 +16,6 @@ const EMPTY = new Set([
   'embed',
   'canvas',
   'svg',
-  'video',
-  'audio',
-  'picture',
   'link',
   'meta',
 ]);
@@ -38,11 +35,27 @@ const KEEP = new Set([
   'aria-label',
 ]);
 const MAX_ATTR = 200;
+/**
+ * Tags whose media attributes are kept (http(s) or relative URLs up to `MAX_MEDIA_ATTR`; no
+ * `data:`/`blob:`), so field rules can be checked against a sample.
+ */
+const MEDIA = new Set(['img', 'video', 'audio', 'source', 'iframe', 'embed', 'object']);
+const MEDIA_ATTRS = new Set(['src', 'srcset', 'poster', 'data']);
+const MAX_MEDIA_ATTR = 300;
+
+function mediaUrls(value: string): boolean {
+  if (value.length > MAX_MEDIA_ATTR) return false;
+  return value
+    .split(',')
+    .map((part) => part.trim().split(/\s+/)[0] ?? '')
+    .every((u) => !!u && (/^https?:\/\//i.test(u) || !/^[a-z][a-z0-9+.-]*:/i.test(u)));
+}
 
 type Mode = { items: number; maxText: number; attrs: 'some' | 'all'; classes: 'all' | 'stable' };
 
-function keepAttr(name: string, value: string, mode: Mode): boolean {
-  if (/^on/i.test(name) || name === 'style' || name === 'src' || name === 'srcset') return false;
+function keepAttr(tag: string, name: string, value: string, mode: Mode): boolean {
+  if (MEDIA_ATTRS.has(name)) return MEDIA.has(tag) && mediaUrls(value);
+  if (/^on/i.test(name) || name === 'style') return false;
   if (name === 'href' && /^\s*javascript:/i.test(value)) return false;
   if (mode.attrs === 'all') return true;
   return KEEP.has(name) || (name.startsWith('data-') && value.length <= 60);
@@ -53,8 +66,8 @@ function shell(out: Document, el: Element, mode: Mode): Element {
     ? out.createElementNS(el.namespaceURI, el.localName)
     : out.createElement(el.localName);
   for (const { name, value } of Array.from(el.attributes)) {
-    if (!keepAttr(name, value, mode)) continue;
-    let v = value.length > MAX_ATTR ? value.slice(0, MAX_ATTR) : value;
+    if (!keepAttr(el.localName, name, value, mode)) continue;
+    let v = MEDIA_ATTRS.has(name) || value.length <= MAX_ATTR ? value : value.slice(0, MAX_ATTR);
     if (name === 'class') {
       const cls = v.split(/\s+/).filter((c) => c && (mode.classes === 'all' || isStableClass(c)));
       if (!cls.length) continue;
