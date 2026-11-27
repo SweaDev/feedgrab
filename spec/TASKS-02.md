@@ -69,7 +69,7 @@ Spec: `spec/SPEC-02.md`. Plan: `spec/PLAN-02.md` (cited by section). Notes: `spe
   - Read: PLAN §4
   - Files: `src/overlay/{theme,styles,panel,open-overlay,index}.ts`, `src/index.ts`, `tests/unit/overlay/{theme,panel}.test.ts`, `tests/unit/api.test.ts`
   - Commit: `feat(overlay): dark mode, content-type badge and exported highlighter (T50)`
-- [ ] **T51 — Docs and version 0.7.0**
+- [x] **T51 — Docs and version 0.7.0**
   - Files: `README.md`, `package.json`, `src/index.ts`, `tests/unit/smoke.test.ts`
   - Accept: full Definition of Done; tag `v0.7.0`.
   - Commit: `chore: version 0.7.0`
