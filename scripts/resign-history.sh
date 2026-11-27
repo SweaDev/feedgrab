@@ -11,6 +11,8 @@
 #   --branch NAME     branch to rewrite and fast-forward main to (default: claude/exciting-davinci-lvhp5s)
 #   --main NAME       main branch (default: main)
 #   --remote NAME     remote (default: origin)
+#   --fix-identity E  author/committer email to replace with your user.name/user.email (dates
+#                     kept); repeatable, default noreply@anthropic.com (an agent's identity)
 #   --yes             don't ask before pushing
 #   -h, --help        show this help
 # Without --report or --push it is a dry run: it rewrites into new objects, verifies them and prints
@@ -26,6 +28,7 @@ if [ "${BASH_VERSINFO[0]}" -lt 4 ] || { [ "${BASH_VERSINFO[0]}" -eq 4 ] && [ "${
 fi
 
 BRANCH=claude/exciting-davinci-lvhp5s MAIN=main REMOTE=origin MODE=dry YES=0
+FIX_IDS=(noreply@anthropic.com)
 while [ $# -gt 0 ]; do
   case "$1" in
     --report) MODE=report; shift ;;
@@ -33,8 +36,9 @@ while [ $# -gt 0 ]; do
     --branch) BRANCH="$2"; shift 2 ;;
     --main) MAIN="$2"; shift 2 ;;
     --remote) REMOTE="$2"; shift 2 ;;
+    --fix-identity) FIX_IDS+=("$2"); shift 2 ;;
     --yes) YES=1; shift ;;
-    -h|--help) sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "Unknown option: $1" >&2; exit 2 ;;
   esac
 done
@@ -137,21 +141,40 @@ good() { # good <commit-or-tag> <commit|tag>
   mine "$fpr" || mine "$pfpr"
 }
 
+ME_NAME=$(git config user.name || true)
+ME_EMAIL=$(git config user.email || true)
+if [ -z "$ME_NAME" ] || [ -z "$ME_EMAIL" ]; then die "set git user.name and user.email first"; fi
+for e in "${FIX_IDS[@]}"; do
+  [ "$e" != "$ME_EMAIL" ] || die "your own user.email ($e) is in --fix-identity; set your identity first"
+done
+fixid() { local e; for e in "${FIX_IDS[@]}"; do [ "$1" = "$e" ] && return 0; done; return 1; }
+# Whether a commit's author or committer is an identity to replace.
+wrong_ident() {
+  local ae ce
+  IFS='|' read -r ae ce < <(git log -1 --format='%ae|%ce' "$1")
+  fixid "$ae" || fixid "$ce"
+}
+
 if [ "$MODE" = report ]; then
   say "Commits on $BRANCH (oldest first): local status, GitHub verified"
   slug=$(git remote get-url "$REMOTE" | sed -E 's#(git@github.com:|https://github.com/)##; s#\.git$##')
   use_gh=0
   command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1 && use_gh=1
-  bad=0
+  bad=0 wrong=0
   while read -r c; do
     st=$(sig log -1 --format='%G?' "$c")
     on=$(git merge-base --is-ancestor "$c" "$OLD_MAIN" && echo "$MAIN" || echo "$BRANCH")
     gh_v=-
     [ "$use_gh" = 1 ] && gh_v=$(gh api "repos/$slug/commits/$c" --jq .commit.verification.verified 2>/dev/null || echo '?')
     if good "$c" commit; then st="$st*"; else bad=$((bad + 1)); fi
+    if wrong_ident "$c"; then st="$st!"; wrong=$((wrong + 1)); fi
     printf '    %s %-2s %-6s gh:%-5s %s\n' "$(git rev-parse --short "$c")" "$st" "$on" "$gh_v" "$(git log -1 --format=%s "$c" | cut -c1-70)"
   done < <(git rev-list --reverse --topo-order "$OLD_TIP")
   ok "$bad commit(s) not signed by your key would be re-signed"
+  ok "$wrong commit(s) by ${FIX_IDS[*]} (!) would get your identity ($ME_NAME <$ME_EMAIL>), dates kept"
+  others=$(git log --format='%an <%ae>%n%cn <%ce>' "$OLD_TIP" | sort -u |
+    grep -vxF "$ME_NAME <$ME_EMAIL>" | grep -vF "${FIX_IDS[@]/#/-e}" || true)
+  [ -z "$others" ] || ok "other identities, kept as they are: $(tr '\n' ';' <<<"$others" | sed 's/;$//; s/;/; /g')"
   ok "status: * = signed by your key; G good, U good but key not trusted, N none, E can't check (not your key), B/X/Y/R bad or expired"
   [ "$use_gh" = 1 ] || ok "install and log in to gh to also see GitHub's verdict"
   exit 0
@@ -169,13 +192,15 @@ while read -r c; do
     [ "$np" = "$p" ] || changed=1
     parents+=(-p "$np")
   done
-  if [ "$changed" = 0 ] && good "$c" commit; then
+  if [ "$changed" = 0 ] && ! wrong_ident "$c" && good "$c" commit; then
     MAP[$c]=$c
     kept=$((kept + 1))
     continue
   fi
   git cat-file commit "$c" | sed '1,/^$/d' > "$TMP/msg"
   mapfile -d '' f < <(git log -1 --format='%an%x00%ae%x00%ad%x00%cn%x00%ce%x00%cd%x00' --date=raw "$c")
+  if fixid "${f[1]}"; then f[0]=$ME_NAME f[1]=$ME_EMAIL; fi
+  if fixid "${f[4]}"; then f[3]=$ME_NAME f[4]=$ME_EMAIL; fi
   MAP[$c]=$(GIT_AUTHOR_NAME="${f[0]}" GIT_AUTHOR_EMAIL="${f[1]}" GIT_AUTHOR_DATE="${f[2]}" \
     GIT_COMMITTER_NAME="${f[3]}" GIT_COMMITTER_EMAIL="${f[4]}" GIT_COMMITTER_DATE="${f[5]}" \
     git commit-tree -S "$(git rev-parse "$c^{tree}")" "${parents[@]}" -F "$TMP/msg")
@@ -185,18 +210,26 @@ NEW_TIP=${MAP[$OLD_TIP]}
 ok "$signed re-signed, $kept kept"
 
 say "Verifying commits"
-ident() { git log -1 --format='%an|%ae|%ad|%cn|%ce|%cd' --date=raw "$1"; }
+# Author and committer with dates; identities to fix read as yours.
+ident() {
+  local an ae ad cn ce cd
+  IFS='|' read -r an ae ad cn ce cd < <(git log -1 --format='%an|%ae|%ad|%cn|%ce|%cd' --date=raw "$1")
+  if fixid "$ae"; then an=$ME_NAME ae=$ME_EMAIL; fi
+  if fixid "$ce"; then cn=$ME_NAME ce=$ME_EMAIL; fi
+  printf '%s|%s|%s|%s|%s|%s\n' "$an" "$ae" "$ad" "$cn" "$ce" "$cd"
+}
 for c in "${!MAP[@]}"; do
   n=${MAP[$c]}
   [ "$n" = "$c" ] && continue
   [ "$(git rev-parse "$c^{tree}")" = "$(git rev-parse "$n^{tree}")" ] || die "tree differs for $c"
   [ "$(ident "$c")" = "$(ident "$n")" ] || die "author/committer or dates differ for $c"
+  ! wrong_ident "$n" || die "new commit $n for $c still has an identity to fix"
   [ "$(git cat-file commit "$c" | sed '1,/^$/d' | git hash-object --stdin)" = \
     "$(git cat-file commit "$n" | sed '1,/^$/d' | git hash-object --stdin)" ] || die "message differs for $c"
   good "$n" commit || die "new commit $n for $c is not signed by your key"
 done
 git diff --quiet "$OLD_TIP" "$NEW_TIP" || die "the rewritten tip's tree differs"
-ok "trees, messages, authors, committers and dates identical; every commit signed"
+ok "trees, messages and dates identical; authors and committers identical except ${FIX_IDS[*]} → you; every commit signed"
 
 # ---- tags ---------------------------------------------------------------------------------------
 say "Planning tags"
@@ -276,7 +309,9 @@ for t in "${CHANGED_TAGS[@]}"; do
       [ -s "$TMP/tagmsg" ] || printf '%s\n' "${PENDING_MSG[$t]:-$t}" > "$TMP/tagmsg"
       mapfile -d '' f < <(git for-each-ref --format='%(taggername)%00%(taggeremail)%00%(taggerdate:raw)%00' "refs/tags/$t")
       email=${f[1]#<}
-      GIT_COMMITTER_NAME="${f[0]}" GIT_COMMITTER_EMAIL="${email%>}" GIT_COMMITTER_DATE="${f[2]}" \
+      email=${email%>}
+      if fixid "$email"; then f[0]=$ME_NAME email=$ME_EMAIL; fi
+      GIT_COMMITTER_NAME="${f[0]}" GIT_COMMITTER_EMAIL="$email" GIT_COMMITTER_DATE="${f[2]}" \
         git tag -s -f --cleanup=verbatim -F "$TMP/tagmsg" "$t" "$target" >/dev/null
       ;;
     new) git tag -s -m "${PENDING_MSG[$t]}" "$t" "$target" ;;
