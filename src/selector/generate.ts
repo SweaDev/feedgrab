@@ -168,3 +168,41 @@ export function itemSelector(container: Element, items: Element[]): Selector {
   if (extra.length <= 0.5 * items.length || !classes) return { type: 'css', value: s1 };
   return { type: 'css', value: s1 + classes };
 }
+
+function firstIn(root: Element, sel: string): Element | null {
+  try {
+    return root.querySelector(sel);
+  } catch {
+    return null;
+  }
+}
+
+/** Options of `generateSelector`. */
+export type GenerateOptions = {
+  /** Make the selector relative to this ancestor (`:scope …`): its first match is the element. */
+  root?: Element;
+};
+
+/**
+ * A robust CSS selector for any element, built from stable ids, classes and attributes before
+ * falling back to positions. Without `root` it matches only `el` in its document; with `root` it
+ * is relative to `root` (for item-relative selectors such as permalinks, parts and fields) and its
+ * first match inside `root` is `el`.
+ */
+export function generateSelector(el: Element, opts: GenerateOptions = {}): Selector {
+  const root = opts.root;
+  if (!root || !root.contains(el)) return containerSelector(el);
+  if (root === el) return { type: 'css', value: ':scope' };
+  for (const c of simpleCandidates(el)) {
+    if (firstIn(root, `:scope ${c}`) === el) return { type: 'css', value: `:scope ${c}` };
+  }
+  let path = levelSelector(el);
+  for (let cur = el.parentElement; cur && cur !== root; cur = cur.parentElement) {
+    for (const c of simpleCandidates(cur)) {
+      const sel = `:scope ${c} ${path}`;
+      if (firstIn(root, sel) === el) return { type: 'css', value: sel };
+    }
+    path = `${levelSelector(cur)} > ${path}`;
+  }
+  return { type: 'css', value: `:scope > ${path}` };
+}
