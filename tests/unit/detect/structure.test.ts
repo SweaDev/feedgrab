@@ -1,6 +1,13 @@
 import { expect, test } from 'bun:test';
 import { suggestPermalinks } from '../../../src/detect/permalink';
-import { findReferenceItem, matchStructure, suggestStructure } from '../../../src/detect/structure';
+import {
+  findReferenceItem,
+  matchStructure,
+  partCoverage,
+  partText,
+  structureCoverage,
+  suggestStructure,
+} from '../../../src/detect/structure';
 import { captureSample } from '../../../src/feed/sample';
 import { openFeed } from '../../../src/feed/unified-feed';
 import { createProfile, parseProfile, serializeProfile } from '../../../src/profile/profile';
@@ -230,4 +237,20 @@ test('structure round-trips through profiles; invalid parts are rejected', () =>
   const bad = JSON.parse(serializeProfile(p));
   bad.feeds[0].structure.parts[0].required = 'yes';
   expect(() => parseProfile(JSON.stringify(bad))).toThrow();
+});
+
+test('structureCoverage, partCoverage and partText', () => {
+  const doc = parseHtml(
+    '<ul><li><time>1h</time><img alt="pic"><b>Ann</b></li><li><b>Bo</b></li><li><time>2h</time></li></ul>',
+    'https://s.test/',
+  );
+  const items = Array.from(doc.querySelectorAll('li'));
+  const time = { selector: { type: 'css' as const, value: 'time' }, required: true };
+  const img = { selector: { type: 'css' as const, value: 'img' }, required: false };
+  expect(structureCoverage(items, { parts: [time, img] })).toBe(2);
+  expect(structureCoverage(items, { parts: [{ ...time, required: false }] })).toBe(3);
+  expect(structureCoverage(items)).toBe(3);
+  expect(partCoverage(items, img)).toBe(1);
+  expect(partText(items[0]!, img)).toBe('pic');
+  expect(partText(items[1]!, time)).toBe('');
 });
