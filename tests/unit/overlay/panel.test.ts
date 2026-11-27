@@ -110,3 +110,15 @@ test('Feed N selects the feed and asks to show it', async () => {
   expect(t.state.selectedId).toBe(id);
   expect(t.picks).toContain(`show:${id}`);
 });
+
+test('feed rows show the content type when the host gives one', async () => {
+  const doc = loadFixture('video-grid');
+  const proposals = await detectFeeds(doc);
+  const state = initState(proposals, { url: doc.URL });
+  const root = doc.createElement('div');
+  const base = { doc, onPick: () => {}, onSave: () => {}, onCancel: () => {} };
+  renderPanel(root, state, () => {}, base);
+  expect(root.querySelector('.fd-type')).toBeNull();
+  renderPanel(root, state, () => {}, { ...base, typeOf: () => 'video' });
+  expect(root.querySelector('.fd-feed-row .fd-type')?.textContent).toBe('videos');
+});
