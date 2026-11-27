@@ -1,6 +1,14 @@
+import { type ExtractOptions, extractContent } from '../content/extract';
 import { normalizeText } from '../env/text';
 import type { Evaluation } from '../exclude/engine';
-import type { ExclusionMatch, FeedItem, ItemStatus, PartMatch, RuleRef } from '../types';
+import type {
+  ExclusionMatch,
+  FeedItem,
+  ItemContent,
+  ItemStatus,
+  PartMatch,
+  RuleRef,
+} from '../types';
 
 /** Key of the internal state on `FeedItemImpl`. */
 export const INTERNAL = Symbol('fd.internal');
@@ -9,6 +17,8 @@ export type ItemInternal = {
   docSeq: number;
   evaluation?: Evaluation;
   textCache?: { el: Element; text: string };
+  contentCache?: { el: Element; content: ItemContent };
+  extract: ExtractOptions;
   llmKey?: string;
 };
 
@@ -33,13 +43,14 @@ export class FeedItemImpl implements FeedItem {
     docSeq: number;
     sourceUrl?: string;
     permalink?: string;
+    extract?: ExtractOptions;
   }) {
     this.id = init.id;
     this.feedId = init.feedId;
     this.element = init.element;
     if (init.sourceUrl !== undefined) this.sourceUrl = init.sourceUrl;
     if (init.permalink !== undefined) this.permalink = init.permalink;
-    this[INTERNAL] = { docSeq: init.docSeq };
+    this[INTERNAL] = { docSeq: init.docSeq, extract: init.extract ?? { baseUrl: 'about:blank' } };
   }
 
   /** Normalized text, cached until the element changes or `invalidateText()` is called. */
@@ -51,8 +62,18 @@ export class FeedItemImpl implements FeedItem {
     return st.textCache.text;
   }
 
+  /** Typed content, cached until the element changes or `invalidateText()` is called. */
+  content(): ItemContent {
+    const st = this[INTERNAL];
+    if (st.contentCache?.el !== this.element) {
+      st.contentCache = { el: this.element, content: extractContent(this.element, st.extract) };
+    }
+    return st.contentCache.content;
+  }
+
   invalidateText(): void {
     this[INTERNAL].textCache = undefined;
+    this[INTERNAL].contentCache = undefined;
   }
 
   /** Applies an evaluation; returns true when status, reasons, parts or rescue changed. */
