@@ -23,3 +23,12 @@ test('skeleton respects the budget', () => {
   expect(s.length).toBeLessThanOrEqual(400 + '\n…truncated'.length);
   expect(buildSkeleton(cands).length).toBeGreaterThan(400);
 });
+
+test('skeleton shows where media points, not page links', () => {
+  const s = buildSkeleton(findCandidates(loadFixture('video-grid')));
+  expect(s).toContain('href=www.youtube.com/…');
+  expect(s).toContain('<img src=i.ytimg.test/….jpg>');
+  const p = buildSkeleton(findCandidates(loadFixture('podcast-list')));
+  expect(p).toContain('<audio src=cdn.podcast.test/….mp3>');
+  expect(p).toContain('datetime=PT40M');
+});
