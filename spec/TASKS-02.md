@@ -48,7 +48,7 @@ Spec: `spec/SPEC-02.md`. Plan: `spec/PLAN-02.md` (cited by section). Notes: `spe
 
 ## Phase N — Recognition at grab time (v0.7.0)
 
-- [ ] **T47 — `describeFeed` and `suggestFields`**
+- [x] **T47 — `describeFeed` and `suggestFields`**
   - Depends: T46
   - Read: PLAN §2 (`describe`)
   - Files: `src/types.ts`, `src/detect/structure.ts`, `src/content/fields.ts`, `src/content/describe.ts`, `tests/unit/content/describe.test.ts`
