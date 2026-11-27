@@ -81,3 +81,24 @@ test('version 99 → UNSUPPORTED_PROFILE_VERSION', () => {
   );
   expect(e.code).toBe('UNSUPPORTED_PROFILE_VERSION');
 });
+
+test('content type and field rules round-trip; invalid rules are rejected', () => {
+  const content: FeedDescriptor['content'] = {
+    type: 'video',
+    fields: {
+      title: { selector: { type: 'css', value: 'h3' } },
+      poster: { selector: { type: 'css', value: 'img' }, source: 'attr', attr: 'src' },
+    },
+  };
+  const p = createProfile({ url: 'https://v.example/', feeds: [{ ...feed, content }] });
+  expect(parseProfile(serializeProfile(p)).feeds[0]!.content).toEqual(content);
+  expect(
+    parseProfile(serializeProfile(createProfile({ url: 'https://v.example/', feeds: [feed] })))
+      .feeds[0]!.content,
+  ).toBeUndefined();
+  const bad = JSON.parse(serializeProfile(p));
+  bad.feeds[0].content.fields.nope = { selector: { type: 'css', value: 'a' } };
+  expect(codeOf(() => parseProfile(JSON.stringify(bad))).code).toBe('INVALID_PROFILE');
+  bad.feeds[0].content = { type: 'podcast' };
+  expect(codeOf(() => parseProfile(JSON.stringify(bad))).code).toBe('INVALID_PROFILE');
+});
