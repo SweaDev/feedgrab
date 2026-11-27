@@ -51,7 +51,8 @@ export function findDuration(el: Element): number | undefined {
   return undefined;
 }
 
-function fromElement(el: Element, base: string): MediaInfo | null {
+/** Media of a `video`/`audio` element, a provider player or a PDF embed inside `el`, or null. */
+export function mediaFromElement(el: Element, base: string): MediaInfo | null {
   const av = el.querySelector('video, audio');
   if (av) {
     const kind = av.localName === 'audio' ? 'audio' : 'video';
@@ -125,7 +126,7 @@ function fromLink(href: string, type: string | null): MediaInfo | null {
  * Reads only; never fetches.
  */
 export function findMedia(el: Element, base: string, permalink?: Selector): FoundMedia | null {
-  const found = fromElement(el, base);
+  const found = mediaFromElement(el, base);
   if (found) return { media: found, via: 'element' };
   const links: Element[] = [];
   const main = findPermalink(el, base, permalink);
