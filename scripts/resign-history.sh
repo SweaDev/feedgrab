@@ -54,26 +54,44 @@ ver=$(git version | awk '{print $3}')
 if ! git diff --quiet || ! git diff --cached --quiet; then die "commit or stash your changes first"; fi
 FORMAT=$(git config gpg.format || echo openpgp)
 SIGNKEY=$(git config user.signingkey || true)
-[ -n "$SIGNKEY" ] || die "no user.signingkey; run scripts/setup-env.sh first"
-if [ "$FORMAT" = ssh ]; then
-  pub="$SIGNKEY"
-  case "$pub" in
-    key::*) printf '%s\n' "${pub#key::}" > "$TMP/key.pub"; pub="$TMP/key.pub" ;;
-    ssh-*) printf '%s\n' "$pub" > "$TMP/key.pub"; pub="$TMP/key.pub" ;;
-  esac
-  pub="${pub/#\~/$HOME}"
-  [ -f "$pub" ] || die "signing key $pub not found"
-  MYKEY=$(ssh-keygen -lf "$pub" | awk '{print $2}')
-  signers=$(git config gpg.ssh.allowedSignersFile || true)
-  signers="${signers/#\~/$HOME}"
-  body=$(awk '{print $2}' "$pub")
-  if [ -z "$signers" ] || ! grep -qF "$body" "$signers" 2>/dev/null; then
-    die "your key is not in gpg.ssh.allowedSignersFile, so git can't check signatures; run scripts/setup-env.sh"
-  fi
-else
-  MYKEY=$(printf '%s' "${SIGNKEY#0x}" | tr '[:lower:]' '[:upper:]')
+# Signature checks run through `sig`: quiet, and able to read SSH signatures (as "not yours")
+# even when you sign with OpenPGP and have no allowed-signers file.
+SIGOPTS=()
+signers=$(git config gpg.ssh.allowedSignersFile || true)
+signers="${signers/#\~/$HOME}"
+if [ -z "$signers" ] || [ ! -f "$signers" ]; then
+  : > "$TMP/no-signers"
+  SIGOPTS=(-c "gpg.ssh.allowedSignersFile=$TMP/no-signers")
 fi
-ok "signing with $FORMAT key $MYKEY as $(git config user.name) <$(git config user.email)>"
+sig() { git "${SIGOPTS[@]}" "$@" 2>/dev/null; }
+MYFPRS=""
+case "$FORMAT" in
+  ssh)
+    [ -n "$SIGNKEY" ] || die "no user.signingkey; run scripts/setup-env.sh first"
+    pub="$SIGNKEY"
+    case "$pub" in
+      key::*) printf '%s\n' "${pub#key::}" > "$TMP/key.pub"; pub="$TMP/key.pub" ;;
+      ssh-*) printf '%s\n' "$pub" > "$TMP/key.pub"; pub="$TMP/key.pub" ;;
+    esac
+    pub="${pub/#\~/$HOME}"
+    [ -f "$pub" ] || die "signing key $pub not found"
+    MYKEY=$(ssh-keygen -lf "$pub" | awk '{print $2}')
+    body=$(awk '{print $2}' "$pub")
+    if [ ${#SIGOPTS[@]} -gt 0 ] || ! grep -qF "$body" "$signers" 2>/dev/null; then
+      die "your key is not in gpg.ssh.allowedSignersFile, so git can't check signatures; run scripts/setup-env.sh"
+    fi
+    ;;
+  openpgp)
+    GPG=$(git config gpg.openpgp.program || git config gpg.program || echo gpg)
+    spec=${SIGNKEY:-$(git config user.email)}
+    MYFPRS=$("$GPG" --batch --with-colons --list-secret-keys "${spec%!}" 2>/dev/null |
+      awk -F: '$1 == "fpr" { print $10 }')
+    [ -n "$MYFPRS" ] || die "no secret GPG key for '$spec' (set user.signingkey to your key id)"
+    MYKEY=$(head -1 <<<"$MYFPRS")
+    ;;
+  *) die "gpg.format $FORMAT isn't supported (use openpgp or ssh)" ;;
+esac
+ok "signing with $FORMAT key $MYKEY ($(git config user.name) <$(git config user.email)>)"
 if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
   say "Unshallowing (the whole history is rewritten)"
   git fetch --unshallow "$REMOTE"
@@ -92,20 +110,31 @@ fi
 REMOTE_TAGS=$(git ls-remote --tags "$REMOTE" | awk '$2 !~ /\^\{\}$/ {sub("refs/tags/","",$2); print $2}')
 ok "$MAIN $(git rev-parse --short "$OLD_MAIN"), $BRANCH $(git rev-parse --short "$OLD_TIP")"
 
-# Whether a commit or tag is already signed by your key.
+mine() { [ -n "$1" ] && grep -qxF "$1" <<<"$MYFPRS"; }
+
+# Whether a commit or tag is already signed by your key (OpenPGP: good, trusted or not).
 good() { # good <commit-or-tag> <commit|tag>
-  local st key
-  if [ "$2" = commit ]; then
-    read -r st key < <(git log -1 --format='%G? %GK' "$1" 2>/dev/null) || return 1
-  else
-    git verify-tag "$1" >/dev/null 2>&1 || return 1
-    key=$(git verify-tag --raw "$1" 2>&1 | grep -oE 'SHA256:[A-Za-z0-9+/=]+|[0-9A-F]{16,40}' | head -1)
-    st=G
+  local st key fpr pfpr raw
+  if [ "$FORMAT" = ssh ]; then
+    if [ "$2" = commit ]; then
+      IFS='|' read -r st key < <(sig log -1 --format='%G?|%GK' "$1") || return 1
+    else
+      sig verify-tag "$1" >/dev/null || return 1
+      key=$(git "${SIGOPTS[@]}" verify-tag --raw "$1" 2>&1 | grep -oE 'SHA256:[A-Za-z0-9+/=]+' | head -1)
+      st=G
+    fi
+    [ "$st" = G ] && [ "$key" = "$MYKEY" ]
+    return
   fi
-  [ "$st" = G ] || return 1
-  [ "$FORMAT" = ssh ] && [ "$key" = "$MYKEY" ] && return 0
-  [ "$FORMAT" != ssh ] && [ -n "$key" ] && case "$MYKEY" in *"$key") return 0 ;; esac
-  return 1
+  if [ "$2" = commit ]; then
+    IFS='|' read -r st fpr pfpr < <(sig log -1 --format='%G?|%GF|%GP' "$1") || return 1
+    case "$st" in G | U) ;; *) return 1 ;; esac
+  else
+    raw=$(git "${SIGOPTS[@]}" verify-tag --raw "$1" 2>&1 || true)
+    grep -q '^\[GNUPG:\] GOODSIG ' <<<"$raw" || return 1
+    read -r fpr pfpr < <(awk '$2 == "VALIDSIG" { print $3, $NF }' <<<"$raw")
+  fi
+  mine "$fpr" || mine "$pfpr"
 }
 
 if [ "$MODE" = report ]; then
@@ -115,14 +144,15 @@ if [ "$MODE" = report ]; then
   command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1 && use_gh=1
   bad=0
   while read -r c; do
-    st=$(git log -1 --format='%G?' "$c")
+    st=$(sig log -1 --format='%G?' "$c")
     on=$(git merge-base --is-ancestor "$c" "$OLD_MAIN" && echo "$MAIN" || echo "$BRANCH")
     gh_v=-
     [ "$use_gh" = 1 ] && gh_v=$(gh api "repos/$slug/commits/$c" --jq .commit.verification.verified 2>/dev/null || echo '?')
-    good "$c" commit || bad=$((bad + 1))
-    printf '    %s %s %-6s gh:%-5s %s\n' "$(git rev-parse --short "$c")" "$st" "$on" "$gh_v" "$(git log -1 --format=%s "$c" | cut -c1-70)"
+    if good "$c" commit; then st="$st*"; else bad=$((bad + 1)); fi
+    printf '    %s %-2s %-6s gh:%-5s %s\n' "$(git rev-parse --short "$c")" "$st" "$on" "$gh_v" "$(git log -1 --format=%s "$c" | cut -c1-70)"
   done < <(git rev-list --reverse --topo-order "$OLD_TIP")
-  ok "$bad commit(s) not signed by your key would be re-signed (G=good, N=none, E/U/X=other)"
+  ok "$bad commit(s) not signed by your key would be re-signed"
+  ok "status: * = signed by your key; G good, U good but key not trusted, N none, E can't check (not your key), B/X/Y/R bad or expired"
   [ "$use_gh" = 1 ] || ok "install and log in to gh to also see GitHub's verdict"
   exit 0
 fi
