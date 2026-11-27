@@ -12,7 +12,7 @@
       "!**/dist-test",
       "!examples/extension/.output",
       "!examples/extension/.wxt",
-      "!tests/fixtures/*.html",
+      "!tests/fixtures/**/*.html",
       "!**/*.md"
     ]
   },
