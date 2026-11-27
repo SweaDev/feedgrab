@@ -1,0 +1,273 @@
+#!/usr/bin/env bash
+# Re-signs every commit that isn't signed by your key, keeping trees, messages, authors, committers
+# and their dates (GIT_AUTHOR_DATE, GIT_COMMITTER_DATE) exactly. Then moves `main` to the rewritten
+# branch tip, moves every tag to its rewritten commit (annotated tags keep their message, tagger and
+# date, and are signed), and creates the pending tags from scripts/release-tags.txt.
+# The same file lives in feedgrab and Ghostify (scripts/resign-history.sh); keep the copies identical.
+#
+# Usage: scripts/resign-history.sh [options]
+#   --report          list each commit's local signature status (and GitHub's, with gh), change nothing
+#   --push            rewrite, verify, then push main, the branch and the tags (asks first)
+#   --branch NAME     branch to rewrite and fast-forward main to (default: claude/exciting-davinci-lvhp5s)
+#   --main NAME       main branch (default: main)
+#   --remote NAME     remote (default: origin)
+#   --yes             don't ask before pushing
+#   -h, --help        show this help
+# Without --report or --push it is a dry run: it rewrites into new objects, verifies them and prints
+# the push plan; no ref, local or remote, changes.
+#
+# Only the newest pending tag runs a release workflow: GitHub creates no push events when more than
+# three tags are pushed at once, so every other moved or created tag goes in one batch (refused if
+# that batch would have 1-3 tags), and the newest pending tag is pushed alone afterwards.
+set -euo pipefail
+if [ "${BASH_VERSINFO[0]}" -lt 4 ] || { [ "${BASH_VERSINFO[0]}" -eq 4 ] && [ "${BASH_VERSINFO[1]}" -lt 4 ]; }; then
+  echo "bash 4.4+ is needed (macOS: brew install bash, then run it with that bash)" >&2
+  exit 1
+fi
+
+BRANCH=claude/exciting-davinci-lvhp5s MAIN=main REMOTE=origin MODE=dry YES=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --report) MODE=report; shift ;;
+    --push) MODE=push; shift ;;
+    --branch) BRANCH="$2"; shift 2 ;;
+    --main) MAIN="$2"; shift 2 ;;
+    --remote) REMOTE="$2"; shift 2 ;;
+    --yes) YES=1; shift ;;
+    -h|--help) sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "Unknown option: $1" >&2; exit 2 ;;
+  esac
+done
+
+say() { printf '\033[1m==>\033[0m %s\n' "$*"; }
+ok() { printf '    %s\n' "$*"; }
+die() { printf '\033[31merror:\033[0m %s\n' "$*" >&2; exit 1; }
+
+cd "$(git rev-parse --show-toplevel)"
+TMP=$(mktemp -d)
+trap 'rm -rf "$TMP"' EXIT
+
+# ---- preflight ---------------------------------------------------------------------------------
+say "Preflight"
+ver=$(git version | awk '{print $3}')
+[ "$(printf '%s\n2.34.0\n' "$ver" | sort -V | head -1)" = 2.34.0 ] || die "git $ver is too old (need 2.34+)"
+if ! git diff --quiet || ! git diff --cached --quiet; then die "commit or stash your changes first"; fi
+FORMAT=$(git config gpg.format || echo openpgp)
+SIGNKEY=$(git config user.signingkey || true)
+[ -n "$SIGNKEY" ] || die "no user.signingkey; run scripts/setup-env.sh first"
+if [ "$FORMAT" = ssh ]; then
+  pub="$SIGNKEY"
+  case "$pub" in
+    key::*) printf '%s\n' "${pub#key::}" > "$TMP/key.pub"; pub="$TMP/key.pub" ;;
+    ssh-*) printf '%s\n' "$pub" > "$TMP/key.pub"; pub="$TMP/key.pub" ;;
+  esac
+  pub="${pub/#\~/$HOME}"
+  [ -f "$pub" ] || die "signing key $pub not found"
+  MYKEY=$(ssh-keygen -lf "$pub" | awk '{print $2}')
+  signers=$(git config gpg.ssh.allowedSignersFile || true)
+  signers="${signers/#\~/$HOME}"
+  body=$(awk '{print $2}' "$pub")
+  if [ -z "$signers" ] || ! grep -qF "$body" "$signers" 2>/dev/null; then
+    die "your key is not in gpg.ssh.allowedSignersFile, so git can't check signatures; run scripts/setup-env.sh"
+  fi
+else
+  MYKEY=$(printf '%s' "${SIGNKEY#0x}" | tr '[:lower:]' '[:upper:]')
+fi
+ok "signing with $FORMAT key $MYKEY as $(git config user.name) <$(git config user.email)>"
+if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
+  say "Unshallowing (the whole history is rewritten)"
+  git fetch --unshallow "$REMOTE"
+fi
+git fetch --quiet "$REMOTE" "+refs/heads/$MAIN:refs/remotes/$REMOTE/$MAIN" \
+  "+refs/heads/$BRANCH:refs/remotes/$REMOTE/$BRANCH"
+git fetch --quiet --tags "$REMOTE"
+OLD_MAIN=$(git rev-parse "refs/remotes/$REMOTE/$MAIN")
+OLD_TIP=$(git rev-parse "refs/remotes/$REMOTE/$BRANCH")
+git merge-base --is-ancestor "$OLD_MAIN" "$OLD_TIP" ||
+  die "$REMOTE/$MAIN is not an ancestor of $REMOTE/$BRANCH; merge them first"
+if git rev-parse -q --verify "refs/heads/$BRANCH" >/dev/null &&
+  [ "$(git rev-parse "refs/heads/$BRANCH")" != "$OLD_TIP" ]; then
+  die "local $BRANCH differs from $REMOTE/$BRANCH; push or reset it first"
+fi
+REMOTE_TAGS=$(git ls-remote --tags "$REMOTE" | awk '$2 !~ /\^\{\}$/ {sub("refs/tags/","",$2); print $2}')
+ok "$MAIN $(git rev-parse --short "$OLD_MAIN"), $BRANCH $(git rev-parse --short "$OLD_TIP")"
+
+# Whether a commit or tag is already signed by your key.
+good() { # good <commit-or-tag> <commit|tag>
+  local st key
+  if [ "$2" = commit ]; then
+    read -r st key < <(git log -1 --format='%G? %GK' "$1" 2>/dev/null) || return 1
+  else
+    git verify-tag "$1" >/dev/null 2>&1 || return 1
+    key=$(git verify-tag --raw "$1" 2>&1 | grep -oE 'SHA256:[A-Za-z0-9+/=]+|[0-9A-F]{16,40}' | head -1)
+    st=G
+  fi
+  [ "$st" = G ] || return 1
+  [ "$FORMAT" = ssh ] && [ "$key" = "$MYKEY" ] && return 0
+  [ "$FORMAT" != ssh ] && [ -n "$key" ] && case "$MYKEY" in *"$key") return 0 ;; esac
+  return 1
+}
+
+if [ "$MODE" = report ]; then
+  say "Commits on $BRANCH (oldest first): local status, GitHub verified"
+  slug=$(git remote get-url "$REMOTE" | sed -E 's#(git@github.com:|https://github.com/)##; s#\.git$##')
+  use_gh=0
+  command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1 && use_gh=1
+  bad=0
+  while read -r c; do
+    st=$(git log -1 --format='%G?' "$c")
+    on=$(git merge-base --is-ancestor "$c" "$OLD_MAIN" && echo "$MAIN" || echo "$BRANCH")
+    gh_v=-
+    [ "$use_gh" = 1 ] && gh_v=$(gh api "repos/$slug/commits/$c" --jq .commit.verification.verified 2>/dev/null || echo '?')
+    good "$c" commit || bad=$((bad + 1))
+    printf '    %s %s %-6s gh:%-5s %s\n' "$(git rev-parse --short "$c")" "$st" "$on" "$gh_v" "$(git log -1 --format=%s "$c" | cut -c1-70)"
+  done < <(git rev-list --reverse --topo-order "$OLD_TIP")
+  ok "$bad commit(s) not signed by your key would be re-signed (G=good, N=none, E/U/X=other)"
+  [ "$use_gh" = 1 ] || ok "install and log in to gh to also see GitHub's verdict"
+  exit 0
+fi
+
+# ---- rewrite commits ---------------------------------------------------------------------------
+say "Rewriting commits"
+declare -A MAP
+kept=0 signed=0
+while read -r c; do
+  parents=()
+  changed=0
+  for p in $(git log -1 --format=%P "$c"); do
+    np=${MAP[$p]:-$p}
+    [ "$np" = "$p" ] || changed=1
+    parents+=(-p "$np")
+  done
+  if [ "$changed" = 0 ] && good "$c" commit; then
+    MAP[$c]=$c
+    kept=$((kept + 1))
+    continue
+  fi
+  git cat-file commit "$c" | sed '1,/^$/d' > "$TMP/msg"
+  mapfile -d '' f < <(git log -1 --format='%an%x00%ae%x00%ad%x00%cn%x00%ce%x00%cd%x00' --date=raw "$c")
+  MAP[$c]=$(GIT_AUTHOR_NAME="${f[0]}" GIT_AUTHOR_EMAIL="${f[1]}" GIT_AUTHOR_DATE="${f[2]}" \
+    GIT_COMMITTER_NAME="${f[3]}" GIT_COMMITTER_EMAIL="${f[4]}" GIT_COMMITTER_DATE="${f[5]}" \
+    git commit-tree -S "$(git rev-parse "$c^{tree}")" "${parents[@]}" -F "$TMP/msg")
+  signed=$((signed + 1))
+done < <(git rev-list --reverse --topo-order "$OLD_TIP")
+NEW_TIP=${MAP[$OLD_TIP]}
+ok "$signed re-signed, $kept kept"
+
+say "Verifying commits"
+ident() { git log -1 --format='%an|%ae|%ad|%cn|%ce|%cd' --date=raw "$1"; }
+for c in "${!MAP[@]}"; do
+  n=${MAP[$c]}
+  [ "$n" = "$c" ] && continue
+  [ "$(git rev-parse "$c^{tree}")" = "$(git rev-parse "$n^{tree}")" ] || die "tree differs for $c"
+  [ "$(ident "$c")" = "$(ident "$n")" ] || die "author/committer or dates differ for $c"
+  [ "$(git cat-file commit "$c" | sed '1,/^$/d' | git hash-object --stdin)" = \
+    "$(git cat-file commit "$n" | sed '1,/^$/d' | git hash-object --stdin)" ] || die "message differs for $c"
+  good "$n" commit || die "new commit $n for $c is not signed by your key"
+done
+git diff --quiet "$OLD_TIP" "$NEW_TIP" || die "the rewritten tip's tree differs"
+ok "trees, messages, authors, committers and dates identical; every commit signed"
+
+# ---- tags ---------------------------------------------------------------------------------------
+say "Planning tags"
+declare -A TAG_TARGET TAG_TYPE PENDING_MSG
+CHANGED_TAGS=()
+while read -r t; do
+  target=$(git rev-parse -q --verify "refs/tags/$t^{commit}" 2>/dev/null) || continue
+  [ -n "${MAP[$target]:-}" ] || continue
+  type=$(git cat-file -t "refs/tags/$t")
+  if [ "${MAP[$target]}" = "$target" ] && { [ "$type" = commit ] || good "refs/tags/$t" tag; }; then
+    continue
+  fi
+  TAG_TARGET[$t]=${MAP[$target]}
+  TAG_TYPE[$t]=$type
+  CHANGED_TAGS+=("$t")
+done < <(git for-each-ref --format='%(refname:short)' refs/tags)
+
+PENDING=()
+if [ -f scripts/release-tags.txt ]; then
+  while read -r t c msg; do
+    case "$t" in '' | '#'*) continue ;; esac
+    if grep -qxF "$t" <<<"$REMOTE_TAGS"; then continue; fi
+    c=$(git rev-parse -q --verify "$c^{commit}") || die "release-tags.txt: commit of $t not found"
+    [ -n "${MAP[$c]:-}" ] || die "release-tags.txt: $t points outside $BRANCH"
+    PENDING+=("$t")
+    PENDING_MSG[$t]=$msg
+    if [ -z "${TAG_TARGET[$t]:-}" ]; then
+      TAG_TARGET[$t]=${MAP[$c]}
+      TAG_TYPE[$t]=new
+      git rev-parse -q --verify "refs/tags/$t" >/dev/null && TAG_TYPE[$t]=$(git cat-file -t "refs/tags/$t")
+      CHANGED_TAGS+=("$t")
+    fi
+  done < scripts/release-tags.txt
+fi
+NEWEST=""
+[ ${#PENDING[@]} -gt 0 ] && NEWEST=$(printf '%s\n' "${PENDING[@]}" | sort -V | tail -1)
+BATCH=()
+for t in "${CHANGED_TAGS[@]}"; do [ "$t" = "$NEWEST" ] || BATCH+=("$t"); done
+for t in $(printf '%s\n' "${CHANGED_TAGS[@]}" | sort -V); do
+  ok "$t → $(git rev-parse --short "${TAG_TARGET[$t]}") (${TAG_TYPE[$t]}$([ "$t" = "$NEWEST" ] && echo ', pushed alone: runs its release'))"
+done
+if [ ${#BATCH[@]} -ge 1 ] && [ ${#BATCH[@]} -le 3 ]; then
+  die "only ${#BATCH[@]} tag(s) to batch; GitHub would run a workflow for each. Push them by hand after checking their release.yml."
+fi
+
+say "Push plan"
+ok "1. $MAIN: $(git rev-parse --short "$OLD_MAIN") → $(git rev-parse --short "$NEW_TIP") (force, with lease)"
+ok "2. $BRANCH: $(git rev-parse --short "$OLD_TIP") → $(git rev-parse --short "$NEW_TIP") (force, with lease)"
+ok "3. ${#BATCH[@]} tag(s) in one push (no workflow runs)"
+[ -n "$NEWEST" ] && ok "4. $NEWEST alone (its release workflow runs)"
+if [ "$MODE" = dry ]; then
+  say "Dry run: nothing changed. Run again with --push to apply."
+  exit 0
+fi
+
+# ---- apply -------------------------------------------------------------------------------------
+if [ "$YES" = 0 ]; then
+  read -r -p "    Rewrite $REMOTE/$MAIN, $REMOTE/$BRANCH and ${#CHANGED_TAGS[@]} tag(s)? Type yes: " answer </dev/tty
+  [ "$answer" = yes ] || die "stopped"
+fi
+STAMP=$(date +%Y%m%d%H%M%S)
+BACKUP=refs/resign-backup/$STAMP
+say "Backing up refs under $BACKUP"
+git update-ref "$BACKUP/heads/$MAIN" "$OLD_MAIN"
+git update-ref "$BACKUP/heads/$BRANCH" "$OLD_TIP"
+while read -r ref obj; do git update-ref "$BACKUP/${ref#refs/}" "$obj"; done \
+  < <(git for-each-ref --format='%(refname) %(objectname)' refs/tags)
+
+say "Creating tags"
+for t in "${CHANGED_TAGS[@]}"; do
+  target=${TAG_TARGET[$t]}
+  case "${TAG_TYPE[$t]}" in
+    commit) git update-ref "refs/tags/$t" "$target" ;;
+    tag)
+      git cat-file tag "refs/tags/$t" | sed '1,/^$/d' |
+        sed -E '/^-----BEGIN (PGP|SSH) SIGNATURE-----$/,$d' > "$TMP/tagmsg"
+      [ -s "$TMP/tagmsg" ] || printf '%s\n' "${PENDING_MSG[$t]:-$t}" > "$TMP/tagmsg"
+      mapfile -d '' f < <(git for-each-ref --format='%(taggername)%00%(taggeremail)%00%(taggerdate:raw)%00' "refs/tags/$t")
+      email=${f[1]#<}
+      GIT_COMMITTER_NAME="${f[0]}" GIT_COMMITTER_EMAIL="${email%>}" GIT_COMMITTER_DATE="${f[2]}" \
+        git tag -s -f --cleanup=verbatim -F "$TMP/tagmsg" "$t" "$target" >/dev/null
+      ;;
+    new) git tag -s -m "${PENDING_MSG[$t]}" "$t" "$target" ;;
+  esac
+  [ "${TAG_TYPE[$t]}" = commit ] || good "refs/tags/$t" tag || die "tag $t is not signed by your key"
+done
+ok "${#CHANGED_TAGS[@]} tag(s) ready"
+
+say "Pushing"
+git push --force-with-lease="refs/heads/$MAIN:$OLD_MAIN" "$REMOTE" "$NEW_TIP:refs/heads/$MAIN"
+git push --force-with-lease="refs/heads/$BRANCH:$OLD_TIP" "$REMOTE" "$NEW_TIP:refs/heads/$BRANCH"
+if [ ${#BATCH[@]} -gt 0 ]; then
+  refs=()
+  for t in "${BATCH[@]}"; do refs+=("+refs/tags/$t:refs/tags/$t"); done
+  git push "$REMOTE" "${refs[@]}"
+fi
+[ -n "$NEWEST" ] && git push "$REMOTE" "+refs/tags/$NEWEST:refs/tags/$NEWEST"
+
+git update-ref "refs/heads/$MAIN" "$NEW_TIP"
+git update-ref "refs/heads/$BRANCH" "$NEW_TIP"
+git fetch --quiet "$REMOTE"
+say "Done"
+ok "$MAIN and $BRANCH are $(git rev-parse --short "$NEW_TIP"); other clones: git fetch && git reset --hard $REMOTE/$MAIN"
+ok "undo: git push --force $REMOTE $BACKUP/heads/$MAIN:refs/heads/$MAIN (and the tags under $BACKUP/tags)"
