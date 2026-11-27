@@ -96,3 +96,25 @@ test('invalid response shape → heuristic and LLM_INVALID_RESPONSE', async () =
   expect(out).toEqual(await detectFeeds(doc));
   expect(errors[0]!.code).toBe('LLM_INVALID_RESPONSE');
 });
+
+test('the LLM content type is kept and only field selectors that find something', async () => {
+  const doc = loadFixture('social-feed');
+  const llm = fnBackend(() => ({
+    feeds: [
+      feed({
+        contentType: 'post',
+        fields: { title: 'p.text', author: '.nope', publishedAt: 'time' },
+      }),
+    ],
+  }));
+  const [d] = await detectFeeds(doc, { llm });
+  expect(d!.content).toEqual({
+    type: 'post',
+    fields: {
+      title: { selector: { type: 'css', value: 'p.text' } },
+      publishedAt: { selector: { type: 'css', value: 'time' } },
+    },
+  });
+  const [plain] = await detectFeeds(doc, { llm: fnBackend(() => ({ feeds: [feed()] })) });
+  expect(plain!.content).toBeUndefined();
+});
