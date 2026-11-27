@@ -12,7 +12,25 @@ export type SkeletonOptions = {
   textSample?: number;
 };
 
-const ATTRS = ['role', 'aria-label', 'data-testid'];
+const ATTRS = ['role', 'aria-label', 'data-testid', 'itemprop', 'type', 'datetime'];
+/** Tags shown with where their media points (`src` host and file extension). */
+const MEDIA = new Set(['img', 'video', 'audio', 'source', 'iframe', 'embed', 'object']);
+
+/** `host/…ext` of a URL, enough for the LLM to tell a player or file from a page. */
+function urlHint(raw: string | null): string | null {
+  if (!raw) return null;
+  try {
+    const u = new globalThis.URL(raw, 'https://page.invalid/');
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+    const path = u.pathname;
+    const dot = path.lastIndexOf('.');
+    const ext = dot > path.lastIndexOf('/') ? path.slice(dot) : '';
+    const host = u.hostname === 'page.invalid' ? '' : u.hostname;
+    return `${host}/…${ext}`.slice(0, 60);
+  } catch {
+    return null;
+  }
+}
 
 function directText(el: Element, max: number): string {
   let text = '';
@@ -30,6 +48,20 @@ function renderNode(el: Element, level: number, o: Required<SkeletonOptions>, ou
   for (const a of ATTRS) {
     const v = el.getAttribute(a);
     if (v) parts.push(`${a}=${v.slice(0, 40)}`);
+  }
+  const tag = parts[0] as string;
+  if (MEDIA.has(tag)) {
+    const hint = urlHint(el.getAttribute('src') ?? el.getAttribute('data'));
+    if (hint) parts.push(`src=${hint}`);
+    if (el.hasAttribute('poster')) parts.push('poster');
+  } else if (tag === 'a') {
+    const hint = urlHint(el.getAttribute('href'));
+    if (
+      hint &&
+      (/\.(pdf|mp3|mp4|m4a|webm)$/i.test(hint) ||
+        /youtu|vimeo|spotify|soundcloud|dailymotion/.test(hint))
+    )
+      parts.push(`href=${hint}`);
   }
   const text = directText(el, o.textSample);
   out.push(`${'  '.repeat(level + 1)}<${parts.join(' ')}>${text ? ` "${text}"` : ''}`);
