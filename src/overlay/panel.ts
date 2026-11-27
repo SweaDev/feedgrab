@@ -1,6 +1,6 @@
 import { timers } from '../env/timers';
 import { validateSelector } from '../selector/match';
-import type { Rule, Selector } from '../types';
+import type { FeedContentType, FeedDescriptor, Rule, Selector } from '../types';
 import { h } from './h';
 import type { Action, DraftFeed, OverlayState, RuleList } from './state';
 
@@ -15,9 +15,25 @@ export type PanelDeps = {
   onCancel(): void;
   /** "Feed N" was clicked: show that feed (scroll to its first item). */
   onShow?(id: string): void;
+  /** The feed's content type, shown as a badge (`post`, `video`, … or `mixed`). */
+  typeOf?(feed: FeedDescriptor): FeedContentType | undefined;
 };
 
 const COUNT_DEBOUNCE_MS = 150;
+
+const TYPE_LABEL: Record<FeedContentType, string> = {
+  post: 'posts',
+  image: 'images',
+  video: 'videos',
+  audio: 'audio',
+  pdf: 'pdfs',
+  mixed: 'mixed',
+};
+
+function typeBadge(doc: Document, type: FeedContentType | undefined): Element[] {
+  if (!type) return [];
+  return [h(doc, 'span', { class: 'fd-type', title: 'What this feed holds' }, TYPE_LABEL[type])];
+}
 
 function selectorEditor(
   doc: Document,
@@ -267,6 +283,7 @@ export function renderPanel(
           },
           `Feed ${i + 1}`,
         ),
+        ...typeBadge(doc, deps.typeOf?.(p)),
         h(doc, 'span', { class: 'fd-count' }, `${p.source} · ${Math.round(p.confidence * 100)}%`),
         h(
           doc,
