@@ -1,9 +1,11 @@
 import { expect, test } from 'bun:test';
 import pkg from '../../package.json';
+import * as article from '../../src/article';
 import * as core from '../../src/index';
 import * as llm from '../../src/llm/index';
 import * as providers from '../../src/llm/providers';
 import * as overlay from '../../src/overlay/index';
+import * as page from '../../src/page';
 import * as server from '../../src/server';
 
 const valueKeys = (m: object) => Object.keys(m).sort();
@@ -54,7 +56,7 @@ test('feedgrab (core) value exports', () => {
   expect(core.VERSION).toBe(pkg.version);
 });
 
-test('feedgrab/llm, /llm/providers, /server, /overlay', () => {
+test('feedgrab/llm, /llm/providers, /server, /overlay, /page, /article', () => {
   for (const k of ['handleLlmRequest', 'createModel', 'createModelFromEnv', 'readEnvConfig']) {
     expect(typeof (llm as Record<string, unknown>)[k]).toBe('function');
   }
@@ -65,6 +67,8 @@ test('feedgrab/llm, /llm/providers, /server, /overlay', () => {
     'openrouter',
   ]);
   expect(valueKeys(server)).toEqual(['disposeDocument', 'parseHtml']);
+  expect(valueKeys(page)).toEqual(['describePage']);
+  expect(valueKeys(article)).toEqual(['extractArticle']);
   expect(typeof overlay.openOverlay).toBe('function');
   expect(typeof overlay.pickElement).toBe('function');
   expect(typeof overlay.createHighlighter).toBe('function');
