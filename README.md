@@ -9,6 +9,10 @@ items with exclusion reports (ads, promoted posts, injected widgets).
 - **Confirm/edit** the proposals in a Shadow-DOM overlay, or programmatically with headless helpers.
 - **Iterate** a unified feed that keeps up with infinite scroll (`MutationObserver`) or pagination
   (`ingest`), with a report per item: `kept`, `excluded` (and why), or `pending`.
+- **Understand** what each item is: a post, image, video, audio or PDF, with its typed
+  attributes (title, author, date, text and HTML, images; for media only what's needed to play or
+  view it: media or embed URL, provider, poster, duration). A feed reports its content type
+  (`mixed` when no kind dominates). Hosts can pin attributes with field rules.
 - **Exclude** items by specificity-ranked selector rules, built-in ad rules, or plain-language LLM
   criteria. Nothing is removed unless you call a removal helper.
 
@@ -21,8 +25,8 @@ Feedgrab is not published to npm yet. Each [GitHub release](https://github.com/S
 has a prebuilt package tarball attached. Install it by URL with any package manager:
 
 ```sh
-bun add https://github.com/SweaDev/feedgrab/releases/download/v0.5.0/feedgrab-0.5.0.tgz
-# or: npm i https://github.com/SweaDev/feedgrab/releases/download/v0.5.0/feedgrab-0.5.0.tgz
+bun add https://github.com/SweaDev/feedgrab/releases/download/v0.6.0/feedgrab-0.6.0.tgz
+# or: npm i https://github.com/SweaDev/feedgrab/releases/download/v0.6.0/feedgrab-0.6.0.tgz
 ```
 
 To upgrade, install the tarball URL of a newer release. Installing straight from the repository
@@ -167,6 +171,20 @@ disposeDocument(doc);
   from an item the user chose (parts most items have are suggested as required), let the user
   adjust it, and later use `findReferenceItem(items, structure)` to start from the item most like
   the one they chose.
+- **Content**: `item.content()` returns `{ kind, title?, author?, publishedAt?, text?, html?,
+  images, media?, confidence }`. `kind` is `post`, `image`, `video`, `audio` or `pdf`. Posts and
+  images carry their content (`html` has scripts, styles, embeds, forms and event handlers removed
+  and URLs made absolute; **sanitize it before rendering**). Video, audio and PDF items carry only
+  playable attributes in `media` (`url` of a direct file with `mime`, or `embedUrl` of a provider
+  player with `provider`/`providerId`, plus `poster`, `duration`, size); feedgrab never downloads
+  media. Known providers (YouTube, Vimeo, Dailymotion, Spotify, SoundCloud) are resolved from
+  page, share and embed links (`resolveProvider(url)`); add more with `registerProvider`.
+  `descriptor.content = { type, fields? }` declares the feed's type (a single kind sets every
+  item's kind) and optional **field rules**: per attribute (`title`, `text`, `html`, `author`,
+  `publishedAt`, `image`, `mediaUrl`, `embedUrl`, `poster`, `duration`) an item-relative
+  `selector` and where to read it (`source`: `text`, `html` or `attr`, with `attr`). Rules win over
+  the heuristics; unset attributes fall back to them. `checkDescriptor(doc, descriptor)` reports
+  the feed's type and the share of each kind.
 - **SiteProfile**: every descriptor for one page type, keyed by `hostname` + `pathPattern`
   (`*` = one segment, `**` = any number, `post-*` = wildcard within a segment).
   `matchProfile(url, profiles)` picks the most specific match. Profiles are plain JSON
@@ -175,7 +193,7 @@ disposeDocument(doc);
   stable id (canonical permalink, else text hash). The canonical permalink drops the hash and sorts
   the query; it keeps only `permalinkParams` when set, else drops tracking parameters (`utm_*`, `fbclid`, …) and `permalinkIgnore`. The permalink is the descriptor's `permalink`
   link when it finds one, else the first `rel=bookmark`/`u-url`/`itemprop=url` link, link with a
-  `<time>`, heading link, or the deepest link, and is exposed as `item.permalink`. Each `FeedItem` has `status`, `reasons`
+  `<time>`, heading link, or the deepest link, and is exposed as `item.permalink`. Each `FeedItem` has `content()` (see Content), `status`, `reasons`
   (rule id, origin `builtin`/`user`/`llm`, criteria and confidence for LLM rules), `parts` (sub-elements
   matched by `part` rules), `connected`, `rescuedBy`, and `sourceUrl` for ingested pages.
 - **Statuses**: `kept`, `excluded`, or `pending` (waiting for an LLM verdict; shown, but don't act on
@@ -200,6 +218,9 @@ disposeDocument(doc);
 | `suggestStructure(items, { reference?, requiredCoverage?, maxParts? })` | core | Parts of a well-formed item (`{ selector, required, label, coverage, text }`), to save as `descriptor.structure` after the user adjusts them. |
 | `matchStructure(item, structure)` | core | `{ ok, missing, optional }`: whether an item has every required part. |
 | `findReferenceItem(items, structure)` | core | Index of the first item with every required part and the most optional ones, or -1. |
+| `checkDescriptor(doc, descriptor, { baseUrl?, builtinExclusions? })` | core | Dry run on a page or saved sample: `{ items, withLink, matchingStructure, kinds, type }`. Read-only. |
+| `generateSelector(el, { root? })` | core | Robust CSS selector for any element: unique in the document, or relative to `root` (`:scope …`, first match is `el`) for permalinks, parts and field rules. |
+| `resolveProvider(url)` / `registerProvider(provider)` | core | Media provider, id, kind and embed URL of a page/share/embed link, or the kind and mime type of a direct media file; register more providers (returns an unregister function). |
 | `validateSelector(doc, sel)` | core | `{ valid, count, error? }`; never throws. |
 | `matchSelector(doc, sel, { root? })` | core | Matched elements, plus `boxes` when the page has layout. |
 | `openFeed(doc, profile, opts?)` | core | Open the `UnifiedFeed`: `items()`, `iterate()`, `for await`, `on/off/once`, `ingest()`, `dispose({ restore? })`. |
