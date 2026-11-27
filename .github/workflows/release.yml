@@ -6,7 +6,37 @@ on:
       - "v*"
 
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      release: ${{ steps.check.outputs.release }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Moving old tags (e.g. after re-signing history) must not rebuild old releases:
+      # only the newest v* tag without a GitHub release yet goes on.
+      - name: Release only the newest tag without a release
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          newest=$(git tag -l 'v*' --sort=-v:refname | head -1)
+          if [ "$GITHUB_REF_NAME" != "$newest" ]; then
+            echo "::notice::$GITHUB_REF_NAME is not the newest tag ($newest); skipping"
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          elif gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "::notice::$GITHUB_REF_NAME already has a release; skipping"
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
   main-only:
+    needs: gate
+    if: needs.gate.outputs.release == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
