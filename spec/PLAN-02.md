@@ -61,9 +61,9 @@ Wiring: `feed/feed-item.ts` gets `content()` (cached per element, like `text()`)
 |---|---|
 | v0.6.0 | §1, `url`, `providers`, `media`, `fields`, `score`, `kind`, `extract`, `FeedItem.content()`, schema, fixtures, `generateSelector`, `checkDescriptor` |
 | v0.7.0 | `describeFeed`/`suggestFields`, §3, §4 samples, structure coverage, overlay highlighter export, color scheme and badge |
-| v0.8.0 | `describePage`, `feedgrab/page` with `extractArticle` |
+| v0.8.0 | `feedgrab/page` with `describePage`, `feedgrab/article` with `extractArticle` (NOTES-02 T52, T53) |
 
 ## Public API
-v1 exports (README API table) plus: `describeFeed`, `suggestFields`, `describePage`, `resolveProvider`, `registerProvider`, `generateSelector`, `checkDescriptor`, `structureCoverage`, `partCoverage`; `feedgrab/overlay`: `createHighlighter`, `DARK_THEME`; `feedgrab/page`: `extractArticle`. Types: §1 types, `FieldSummary`, `FieldCandidate`, `FeedDescription`, `MediaProvider`, `DescriptorCheck`, `Article`.
+v1 exports (README API table) plus: `describeFeed`, `suggestFields`, `resolveProvider`, `registerProvider`, `generateSelector`, `checkDescriptor`, `structureCoverage`, `partCoverage`; `feedgrab/overlay`: `createHighlighter`, `DARK_THEME`; `feedgrab/page`: `describePage`; `feedgrab/article`: `extractArticle`. Types: §1 types, `FieldSummary`, `FieldCandidate`, `FeedDescription`, `MediaProvider`, `DescriptorCheck`, `Article`.
 
 ## Decisions
