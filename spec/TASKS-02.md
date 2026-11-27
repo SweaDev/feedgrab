@@ -59,7 +59,7 @@ Spec: `spec/SPEC-02.md`. Plan: `spec/PLAN-02.md` (cited by section). Notes: `spe
   - Read: PLAN §3
   - Files: `src/detect/skeleton.ts`, `src/llm/contract.ts`, `src/llm/prompts.ts`, `src/detect/llm-refine.ts`, `tests/unit/detect/skeleton.test.ts`, `tests/unit/detect/llm-refine.test.ts`
   - Commit: `feat(llm): detect reports content type and field selectors (T48)`
-- [ ] **T49 — Samples keep media attributes; structure coverage exports**
+- [x] **T49 — Samples keep media attributes; structure coverage exports**
   - Depends: T47
   - Read: PLAN §4
   - Files: `src/feed/sample.ts`, `src/detect/structure.ts`, `tests/unit/feed/sample.test.ts`, `tests/unit/detect/structure.test.ts`
