@@ -2,11 +2,18 @@ import { inspectFromElement } from '../detect/inspect';
 import { hasLayout } from '../env/dom';
 import { timers } from '../env/timers';
 import { FeedgrabError } from '../errors';
+import { checkDescriptor } from '../feed/check';
 import { openFeed } from '../feed/unified-feed';
 import { resolveContainers, resolveItems } from '../selector/evaluate';
 import { cssEscape } from '../selector/generate';
 import { stableClasses } from '../signature/classes';
-import type { FeedDescriptor, LlmBackend, SiteProfile, UnifiedFeed } from '../types';
+import type {
+  FeedContentType,
+  FeedDescriptor,
+  LlmBackend,
+  SiteProfile,
+  UnifiedFeed,
+} from '../types';
 import { type FrameOptions, framePanel } from './frame';
 import { createHighlighter, type HighlightEntry } from './highlighter';
 import { mountHost } from './host';
@@ -125,8 +132,26 @@ export async function openOverlay(
       previewTimer = timers.setTimeout(refreshPreview, PREVIEW_DEBOUNCE_MS);
     };
 
+    // Content type per container/item pair, so re-renders don't re-read the feed.
+    const types = new Map<string, FeedContentType>();
+    const typeOf = (d: FeedDescriptor) => {
+      const key = `${d.container.value}|${d.item.value}|${d.content?.type ?? ''}`;
+      let t = types.get(key);
+      if (t === undefined) {
+        t = d.content?.type ?? checkDescriptor(doc, d, { baseUrl: opts.url ?? doc.URL }).type;
+        types.set(key, t);
+      }
+      return t;
+    };
     const render = () =>
-      renderPanel(frame.body, state, dispatch, { doc, onPick, onSave, onCancel, onShow });
+      renderPanel(frame.body, state, dispatch, {
+        doc,
+        onPick,
+        onSave,
+        onCancel,
+        onShow,
+        typeOf,
+      });
 
     /** Scrolls a feed's first item (else its container) to the top and outlines it briefly. */
     function onShow(id: string) {
