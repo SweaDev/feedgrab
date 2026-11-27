@@ -85,7 +85,7 @@ Spec: `spec/SPEC-02.md`. Plan: `spec/PLAN-02.md` (cited by section). Notes: `spe
   - Depends: T52
   - Files: `src/content/article.ts`, `src/article.ts`, `package.json`, `bun.lock`, `scripts/build.ts`, `scripts/node-smoke.mjs`, `biome.json`, `tests/unit/api.test.ts`
   - Commit: `feat(page): extractArticle entry with optional readability (T53)`
-- [ ] **T54 — Docs and version 0.8.0**
+- [x] **T54 — Docs and version 0.8.0**
   - Files: `README.md`, `package.json`, `src/index.ts`, `tests/unit/smoke.test.ts`
   - Accept: full Definition of Done; tag `v0.8.0`.
   - Commit: `chore: version 0.8.0`
