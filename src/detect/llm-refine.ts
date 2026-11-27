@@ -3,7 +3,15 @@ import type { ResolvedBackend } from '../llm/backend';
 import type { DetectRequest, DetectResponse } from '../llm/contract';
 import { normalizeRule } from '../profile/normalize';
 import { evaluateSelector, resolveItems } from '../selector/evaluate';
-import type { Candidate, DetectOptions, FeedDescriptor, Selector, SelectorRule } from '../types';
+import type {
+  Candidate,
+  DetectOptions,
+  FeedContent,
+  FeedDescriptor,
+  FieldName,
+  Selector,
+  SelectorRule,
+} from '../types';
 import { compareDocumentOrder } from './candidate';
 import { descriptorFromCandidate, descriptorId } from './descriptor';
 import { round4 } from './score';
@@ -21,6 +29,24 @@ function tryEvaluate(sel: Selector, ctx: Document | Element): Element[] | null {
   } catch {
     return null;
   }
+}
+
+/** The LLM's content type and the field selectors that find something in the first item. */
+function contentOf(
+  feed: DetectResponse['feeds'][number],
+  items: Element[],
+): FeedDescriptor['content'] | undefined {
+  if (!feed.contentType) return undefined;
+  const fields: NonNullable<FeedContent['fields']> = {};
+  const sample = items[0];
+  for (const [name, value] of Object.entries(feed.fields ?? {}) as [FieldName, string][]) {
+    if (!value || !sample) continue;
+    const found = tryEvaluate(css(value), sample);
+    if (found?.length) fields[name] = { selector: css(value) };
+  }
+  return Object.keys(fields).length
+    ? { type: feed.contentType, fields }
+    : { type: feed.contentType };
 }
 
 function validateFeed(
@@ -60,19 +86,19 @@ function validateFeed(
   }
   const heuristic = candidates.find((c) => c.container === first)?.score ?? 0.5;
   const container = css(feed.containerSelector);
-  return {
-    first,
-    d: {
-      id: descriptorId(container, item),
-      container,
-      item,
-      exclude,
-      include: [],
-      source: 'llm',
-      confidence: round4(0.5 * feed.confidence + 0.5 * heuristic),
-      confirmed: false,
-    },
+  const d: FeedDescriptor = {
+    id: descriptorId(container, item),
+    container,
+    item,
+    exclude,
+    include: [],
+    source: 'llm',
+    confidence: round4(0.5 * feed.confidence + 0.5 * heuristic),
+    confirmed: false,
   };
+  const content = contentOf(feed, items);
+  if (content) d.content = content;
+  return { first, d };
 }
 
 /**
