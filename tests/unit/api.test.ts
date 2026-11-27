@@ -21,6 +21,14 @@ test('feedgrab (core) value exports', () => {
       'findReferenceItem',
       'captureSample',
       'checkDescriptor',
+      'contentField',
+      'describeFeed',
+      'FIELD_NAMES',
+      'fieldRuleFor',
+      'suggestFields',
+      'structureCoverage',
+      'partCoverage',
+      'partText',
       'generateSelector',
       'registerProvider',
       'resolveProvider',
@@ -59,5 +67,7 @@ test('feedgrab/llm, /llm/providers, /server, /overlay', () => {
   expect(valueKeys(server)).toEqual(['disposeDocument', 'parseHtml']);
   expect(typeof overlay.openOverlay).toBe('function');
   expect(typeof overlay.pickElement).toBe('function');
+  expect(typeof overlay.createHighlighter).toBe('function');
+  expect(overlay.DARK_THEME.colorScheme).toBe('dark');
   expect(overlay.DEFAULT_THEME.colors.feed).toBe('#2563eb');
 });
