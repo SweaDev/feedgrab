@@ -39,6 +39,25 @@ export const DetectResponseSchema = z.object({
       itemSelector: z.string(),
       exclusions: z.array(z.object({ selector: z.string(), scope: z.enum(['item', 'part']) })),
       confidence: confidence(),
+      /** What the feed holds: one kind, or `mixed`. */
+      contentType: z.optional(z.enum(['post', 'image', 'video', 'audio', 'pdf', 'mixed'])),
+      /** CSS selectors relative to an item for its attributes (title, author, mediaUrl, …). */
+      fields: z.optional(
+        z.partialRecord(
+          z.enum([
+            'title',
+            'text',
+            'author',
+            'publishedAt',
+            'image',
+            'mediaUrl',
+            'embedUrl',
+            'poster',
+            'duration',
+          ]),
+          z.string(),
+        ),
+      ),
     }),
   ),
 });
