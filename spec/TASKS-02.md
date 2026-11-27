@@ -54,7 +54,7 @@ Spec: `spec/SPEC-02.md`. Plan: `spec/PLAN-02.md` (cited by section). Notes: `spe
   - Files: `src/types.ts`, `src/detect/structure.ts`, `src/content/fields.ts`, `src/content/describe.ts`, `tests/unit/content/describe.test.ts`
   - Accept: type, detected type, kinds and per-field coverage/values; ranked candidates; picked elements become rules (see NOTES-02 T47 on `detectFeeds`).
   - Commit: `feat(content): describeFeed and suggestFields with coverage (T47)`
-- [ ] **T48 — Skeleton media signals and LLM content fields**
+- [x] **T48 — Skeleton media signals and LLM content fields**
   - Depends: T47
   - Read: PLAN §3
   - Files: `src/detect/skeleton.ts`, `src/llm/contract.ts`, `src/llm/prompts.ts`, `src/detect/llm-refine.ts`, `tests/unit/detect/skeleton.test.ts`, `tests/unit/detect/llm-refine.test.ts`
