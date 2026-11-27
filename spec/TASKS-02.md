@@ -48,11 +48,31 @@ Spec: `spec/SPEC-02.md`. Plan: `spec/PLAN-02.md` (cited by section). Notes: `spe
 
 ## Phase N — Recognition at grab time (v0.7.0)
 
-- [ ] **T47 — `describeFeed` and `suggestFields`** — PLAN §2 (`describe`); detectFeeds fills `content.type`. Commit: `feat(content): describeFeed and suggestFields with coverage (T47)`
-- [ ] **T48 — Skeleton media signals and LLM content fields** — PLAN §3. Commit: `feat(llm): detect reports content type and field selectors (T48)`
-- [ ] **T49 — Samples keep media attributes; structure coverage exports** — PLAN §4. Commit: `feat(sample): keep media attributes; export structure coverage (T49)`
-- [ ] **T50 — Overlay: highlighter export, color scheme, type badge** — PLAN §4. Commit: `feat(overlay): dark mode, content-type badge and exported highlighter (T50)`
-- [ ] **T51 — Docs and version 0.7.0** — Commit: `chore: version 0.7.0`
+- [ ] **T47 — `describeFeed` and `suggestFields`**
+  - Depends: T46
+  - Read: PLAN §2 (`describe`)
+  - Files: `src/types.ts`, `src/detect/structure.ts`, `src/content/fields.ts`, `src/content/describe.ts`, `tests/unit/content/describe.test.ts`
+  - Accept: type, detected type, kinds and per-field coverage/values; ranked candidates; picked elements become rules (see NOTES-02 T47 on `detectFeeds`).
+  - Commit: `feat(content): describeFeed and suggestFields with coverage (T47)`
+- [ ] **T48 — Skeleton media signals and LLM content fields**
+  - Depends: T47
+  - Read: PLAN §3
+  - Files: `src/detect/skeleton.ts`, `src/llm/contract.ts`, `src/llm/prompts.ts`, `src/detect/llm-refine.ts`, `tests/unit/detect/skeleton.test.ts`, `tests/unit/detect/llm-refine.test.ts`
+  - Commit: `feat(llm): detect reports content type and field selectors (T48)`
+- [ ] **T49 — Samples keep media attributes; structure coverage exports**
+  - Depends: T47
+  - Read: PLAN §4
+  - Files: `src/feed/sample.ts`, `src/detect/structure.ts`, `tests/unit/feed/sample.test.ts`, `tests/unit/detect/structure.test.ts`
+  - Commit: `feat(sample): keep media attributes; export structure coverage (T49)`
+- [ ] **T50 — Overlay: highlighter export, color scheme, type badge**
+  - Depends: T47
+  - Read: PLAN §4
+  - Files: `src/overlay/{theme,styles,panel,open-overlay,index}.ts`, `src/index.ts`, `tests/unit/overlay/{theme,panel}.test.ts`, `tests/unit/api.test.ts`
+  - Commit: `feat(overlay): dark mode, content-type badge and exported highlighter (T50)`
+- [ ] **T51 — Docs and version 0.7.0**
+  - Files: `README.md`, `package.json`, `src/index.ts`, `tests/unit/smoke.test.ts`
+  - Accept: full Definition of Done; tag `v0.7.0`.
+  - Commit: `chore: version 0.7.0`
 
 ## Phase O — Item pages (v0.8.0)
 
