@@ -81,7 +81,7 @@ Spec: `spec/SPEC-02.md`. Plan: `spec/PLAN-02.md` (cited by section). Notes: `spe
   - Read: PLAN §2 (`page`); NOTES-02 T52
   - Files: `src/types.ts`, `src/content/media.ts`, `src/content/page.ts`, `src/page.ts`, `tests/fixtures/pages/*`, `tests/unit/content/page.test.ts`
   - Commit: `feat(content): describePage from og, json-ld, oembed and page media (T52)`
-- [ ] **T53 — `feedgrab/article` entry with `extractArticle`**
+- [x] **T53 — `feedgrab/article` entry with `extractArticle`**
   - Depends: T52
   - Files: `src/content/article.ts`, `src/article.ts`, `package.json`, `bun.lock`, `scripts/build.ts`, `scripts/node-smoke.mjs`, `biome.json`, `tests/unit/api.test.ts`
   - Commit: `feat(page): extractArticle entry with optional readability (T53)`
