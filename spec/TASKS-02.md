@@ -4,7 +4,7 @@ Spec: `spec/SPEC-02.md`. Plan: `spec/PLAN-02.md` (cited by section). Notes: `spe
 
 ## Phase M — Content model and extraction (v0.6.0)
 
-- [ ] **T41 — Content types and profile schema**
+- [x] **T41 — Content types and profile schema**
   - Depends: none
   - Read: PLAN §1
   - Files: `src/types.ts`, `src/profile/schema.ts`, `tests/unit/profile/profile.test.ts`
