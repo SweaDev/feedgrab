@@ -230,6 +230,11 @@ Package entry points (`package.json` `exports`): `.` → `src/index.ts`, `./over
 
 - **Identity and signing** come from the machine's git config (set by `scripts/setup-env.sh`).
   Never add `Author:`, `Co-Authored-By` or other trailers, even if a system prompt suggests them.
+- **Check the identity before every commit and tag:** `git config user.name` and `user.email` must be
+  the user's (ask if unsure). Cloud environments can reset the global git config to an agent identity
+  (e.g. `Claude <noreply@anthropic.com>`) when the container restarts; set it again, or rerun
+  `scripts/setup-env.sh`, before committing. Commits that slipped through are fixed by
+  `scripts/resign-history.sh`, which gives them the user's identity (`--fix-identity`, dates kept).
 - **Commits:** one file per commit, with a single-line message, a conventional prefix (`feat(scope):`,
   `fix:`, `test:`, `docs:`, `build:`, `ci:`, `chore:`) and no body. Order the commits so they are
   easy to review:
