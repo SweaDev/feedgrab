@@ -20,6 +20,8 @@ const esm = await Bun.build({
     'src/server.ts',
     'src/llm/index.ts',
     'src/llm/providers.ts',
+    'src/page.ts',
+    'src/article.ts',
   ].map((p) => join(root, p)),
   outdir: dist,
   root: join(root, 'src'),
