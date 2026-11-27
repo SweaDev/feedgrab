@@ -6,7 +6,24 @@ on:
       - "v*"
 
 jobs:
+  main-only:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Only release commits on main
+        run: |
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" FETCH_HEAD; then
+            echo "Tag $GITHUB_REF_NAME points at a commit that is not on main; releases build only from main."
+            exit 1
+          fi
+
   ci:
+    needs: main-only
     uses: ./.github/workflows/ci.yml
 
   release:
