@@ -1,0 +1,13 @@
+# feedgrab 02: implementation notes
+
+Places where the code intentionally differs from `PLAN-02.md`, and judgment calls. Format: `- T<nn>|<topic>: <decision> — <reason>`.
+
+- T41|content: `FeedDescriptor.content` is an optional field on profile v1 (no version bump, no migration), like `permalink` and `structure` in NOTES-01 — it is additive, so v1 profiles stay valid and older readers drop it.
+- T42|providers: YouTube embeds use `www.youtube-nocookie.com/embed/<id>` (same player, no tracking cookies until play). Spotify ids keep their type (`episode/<id>`) because the embed URL needs it. A SoundCloud page maps to its `w.soundcloud.com/player/?url=` widget; SoundCloud has no stable public id in the URL.
+- T43|media: links count as media only when they are the item's permalink, wrap a thumbnail (`a` with `img`/`picture`) or say `type="application/pdf"`. Any link to a `.pdf` or a provider anywhere in a post (an attachment, a "watch the talk" link) would make text posts PDFs or videos.
+- T43|kind: an item with images and at most `IMAGE_MAX_TEXT` (80) characters of text is an image item; 80 keeps captions ("Harbor lights at dusk by Jane") as images while product cards and excerpts (~120+ characters in the v1 fixtures) stay posts. A feed's type is the kind of at least `FEED_KIND_SHARE` (0.8) of its items, else `mixed`. Every v1 fixture reads as a `post` feed.
+- T43|title: a permalink whose element is or holds a `<time>`, or whose text is a single word, is not used as the title ("Oct 11", "5h" on status feeds); those items have no title and hosts fall back to their text.
+- T43|text: video, audio and PDF items take `text` only from description-like paragraphs (no chrome fallback), so a video card's text is not its duration badge, channel and view count. Paragraphs with `meta`/`author`/`byline`/`date` classes are metadata, not text.
+- T43|html: `cleanHtml` is not a sanitizer. It drops scripts, styles, embeds, forms and every attribute but links, sources, alt/title, datetime and sizes, so hosts get compact content HTML; hosts still sanitize before rendering.
+- T44|bundle: `content()` pulls the content modules into the IIFE: 94.6 KB → 111.8 KB (limit 120 KB). The item-page parser (v0.8) goes into the separate `feedgrab/page` entry and `describeFeed` (v0.7) must stay small.
+- T46|e2e: locally the Chromium and extension e2e projects (14 tests) ran against this machine's preinstalled Chromium build through a temporary config with `executablePath` (the repo pins Playwright 1.64.1, whose expected browser build isn't installed here). Firefox e2e wasn't run locally; the release workflow runs every project.
