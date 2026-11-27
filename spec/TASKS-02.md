@@ -76,6 +76,16 @@ Spec: `spec/SPEC-02.md`. Plan: `spec/PLAN-02.md` (cited by section). Notes: `spe
 
 ## Phase O — Item pages (v0.8.0)
 
-- [ ] **T52 — `describePage`** — PLAN §2 (`page`), fixtures `page-video`, `page-article`. Commit: `feat(content): describePage from og, json-ld, oembed and page media (T52)`
-- [ ] **T53 — `feedgrab/page` entry with `extractArticle`** — PLAN §2 (`article`), optional peer `@mozilla/readability`, not in the IIFE. Commit: `feat(page): extractArticle entry with optional readability (T53)`
-- [ ] **T54 — Docs and version 0.8.0** — Commit: `chore: version 0.8.0`
+- [ ] **T52 — `describePage`**
+  - Depends: T51
+  - Read: PLAN §2 (`page`); NOTES-02 T52
+  - Files: `src/types.ts`, `src/content/media.ts`, `src/content/page.ts`, `src/page.ts`, `tests/fixtures/pages/*`, `tests/unit/content/page.test.ts`
+  - Commit: `feat(content): describePage from og, json-ld, oembed and page media (T52)`
+- [ ] **T53 — `feedgrab/article` entry with `extractArticle`**
+  - Depends: T52
+  - Files: `src/content/article.ts`, `src/article.ts`, `package.json`, `bun.lock`, `scripts/build.ts`, `scripts/node-smoke.mjs`, `biome.json`, `tests/unit/api.test.ts`
+  - Commit: `feat(page): extractArticle entry with optional readability (T53)`
+- [ ] **T54 — Docs and version 0.8.0**
+  - Files: `README.md`, `package.json`, `src/index.ts`, `tests/unit/smoke.test.ts`
+  - Accept: full Definition of Done; tag `v0.8.0`.
+  - Commit: `chore: version 0.8.0`
