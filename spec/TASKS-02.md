@@ -33,7 +33,7 @@ Spec: `spec/SPEC-02.md`. Plan: `spec/PLAN-02.md` (cited by section). Notes: `spe
   - Accept: every new fixture's items report the truth kind and field values; feed types match `.expected.json`; DOM snapshots unchanged.
   - Commit: `feat(feed): items report their typed content via content() (T44)`
 
-- [ ] **T45 — `generateSelector` and `checkDescriptor`**
+- [x] **T45 — `generateSelector` and `checkDescriptor`**
   - Depends: T44
   - Read: PLAN §4
   - Files: `src/selector/generate.ts`, `src/feed/check.ts`, `src/index.ts`, `tests/unit/selector/generate-selector.test.ts`, `tests/unit/feed/check.test.ts`, `tests/unit/api.test.ts`
