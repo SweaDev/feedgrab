@@ -19,7 +19,7 @@ Spec: `spec/SPEC-02.md`. Plan: `spec/PLAN-02.md` (cited by section). Notes: `spe
   - Accept: YouTube watch/short/shorts/embed, Vimeo, Dailymotion, Spotify episode/track, SoundCloud and direct files resolve to the right provider, id, kind and embed URL; unknown URLs resolve to `null`; `registerProvider` adds one.
   - Commit: `feat(content): media provider registry and url helpers (T42)`
 
-- [ ] **T43 — Fields, media and kinds**
+- [x] **T43 — Fields, media and kinds**
   - Depends: T42
   - Read: PLAN §2 (`media`, `fields`, `score`, `kind`, `extract`)
   - Files: `src/content/media.ts`, `src/content/fields.ts`, `src/content/score.ts`, `src/content/kind.ts`, `src/content/extract.ts`, `tests/unit/content/extract.test.ts`
