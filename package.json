@@ -26,6 +26,14 @@
       "types": "./dist/types/llm/providers.d.ts",
       "import": "./dist/llm/providers.js"
     },
+    "./page": {
+      "types": "./dist/types/page.d.ts",
+      "import": "./dist/page.js"
+    },
+    "./article": {
+      "types": "./dist/types/article.d.ts",
+      "import": "./dist/article.js"
+    },
     "./browser": "./dist/browser.global.js",
     "./package.json": "./package.json"
   },
@@ -63,6 +71,7 @@
     "@ai-sdk/google": ">=4",
     "@ai-sdk/openai": ">=4",
     "@ai-sdk/openai-compatible": ">=3",
+    "@mozilla/readability": ">=0.5",
     "@openrouter/ai-sdk-provider": ">=3",
     "happy-dom": ">=21"
   },
@@ -74,6 +83,9 @@
       "optional": true
     },
     "@ai-sdk/openai-compatible": {
+      "optional": true
+    },
+    "@mozilla/readability": {
       "optional": true
     },
     "@openrouter/ai-sdk-provider": {
@@ -88,6 +100,7 @@
     "@ai-sdk/openai": "^4.0.105",
     "@ai-sdk/openai-compatible": "^3.0.81",
     "@biomejs/biome": "^2.6.4",
+    "@mozilla/readability": "^0.6.0",
     "@openrouter/ai-sdk-provider": "^3.1.0",
     "@playwright/test": "^1.64.1",
     "@types/bun": "^1.4.4",
