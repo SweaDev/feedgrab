@@ -248,9 +248,14 @@ Package entry points (`package.json` `exports`): `.` → `src/index.ts`, `./over
   3. commit the files in review order;
   4. bump the version (below), as its own commits;
   5. create a signed annotated tag: `git tag -a v<version> -m "<what it adds>"`;
-  6. push the branch and the tag to where the user said this session (ask if you haven't).
+  6. push to where the user said this session (ask if you haven't): the branch and the tag when
+     that is `main`. On any other branch, push the branch only, keep the tag local, and when a
+     release is needed (a GitHub build, or Ghostify needing a new feedgrab) stop and ask the user
+     to push `main` and the tag, giving them the exact commands.
 
   If a push is refused, stop and ask.
+- **Builds and releases come only from `main`.** The release workflow refuses a tag whose commit
+  is not on `main`.
 - **CI runs per tag, not per commit.** Pushing a `vX.Y.Z` tag that matches `package.json`
   `version` runs `.github/workflows/release.yml`: full CI (`ci.yml` via `workflow_call`), then
   `npm pack`, and the tarball is attached to a GitHub release. `ci.yml` has no push or
