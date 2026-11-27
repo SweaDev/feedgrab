@@ -26,7 +26,7 @@ Spec: `spec/SPEC-02.md`. Plan: `spec/PLAN-02.md` (cited by section). Notes: `spe
   - Accept: per-module unit tests; field rules win over heuristics; the element is never mutated.
   - Commit: `feat(content): extract typed item content with field rules and heuristics (T43)`
 
-- [ ] **T44 — `FeedItem.content()` and fixtures**
+- [x] **T44 — `FeedItem.content()` and fixtures**
   - Depends: T43
   - Read: PLAN §2 wiring, §5
   - Files: `src/feed/feed-item.ts`, `src/feed/unified-feed.ts`, `tests/fixtures/{video-grid,image-gallery,podcast-list,pdf-list,mixed-feed}.*`, `tests/helpers/dom.ts`, `tests/unit/fixtures.test.ts`, `tests/unit/content/fixtures.test.ts`, `tests/unit/feed/readonly.test.ts`
