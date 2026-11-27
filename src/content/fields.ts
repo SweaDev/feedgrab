@@ -16,8 +16,10 @@ const URL_ATTRS = ['src', 'href', 'poster', 'content', 'data-src', 'srcset'];
 
 const clean = (s: string | null | undefined) => (s ?? '').replace(/\s+/g, ' ').trim();
 
-const HEADING = 'h1, h2, h3, h4, [role="heading"]';
-const AUTHOR = [
+/** Where headings are. */
+export const HEADING = 'h1, h2, h3, h4, [role="heading"]';
+/** Where authors are, most explicit first. */
+export const AUTHOR = [
   '[itemprop="author"] [itemprop="name"]',
   '[rel="author"]',
   '[itemprop="author"]',
@@ -29,7 +31,8 @@ const AUTHOR = [
   '[class*="creator"]',
   '[class*="author"]',
 ];
-const DESCRIPTION = 'p, [class*="excerpt"], [class*="description"], [class*="summary"]';
+/** Description-like elements. */
+export const DESCRIPTION = 'p, [class*="excerpt"], [class*="description"], [class*="summary"]';
 /** Chrome around the content that should not end up in its text. */
 const NOISE =
   'h1, h2, h3, h4, [role="heading"], button, time, svg, img, script, style, noscript, template, [hidden], [aria-hidden="true"], [class*="dropdown"], [class*="author"], [class*="avatar"], [class*="reaction"], [class*="comment"], [class*="tag"], [class*="meta"], [class*="footer"], [class*="byline"]';
