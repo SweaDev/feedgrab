@@ -39,6 +39,33 @@ export const ItemStructureSchema = z.object({
   ),
 });
 
+const KINDS = ['post', 'image', 'video', 'audio', 'pdf'] as const;
+const FIELD_NAMES = [
+  'title',
+  'text',
+  'html',
+  'author',
+  'publishedAt',
+  'image',
+  'mediaUrl',
+  'embedUrl',
+  'poster',
+  'duration',
+] as const;
+
+/** zod schema for `FieldRule`. */
+export const FieldRuleSchema = z.object({
+  selector: SelectorSchema,
+  source: z.optional(z.enum(['text', 'html', 'attr'])),
+  attr: z.optional(nonEmpty()),
+});
+
+/** zod schema for `FeedContent`. */
+export const FeedContentSchema = z.object({
+  type: z.enum([...KINDS, 'mixed']),
+  fields: z.optional(z.partialRecord(z.enum(FIELD_NAMES), FieldRuleSchema)),
+});
+
 /** zod schema for `FeedDescriptor`. */
 export const FeedDescriptorSchema = z.object({
   id: nonEmpty(),
@@ -53,6 +80,7 @@ export const FeedDescriptorSchema = z.object({
   permalinkParams: z.optional(z.array(nonEmpty())),
   permalinkIgnore: z.optional(z.array(nonEmpty())),
   structure: z.optional(ItemStructureSchema),
+  content: z.optional(FeedContentSchema),
 });
 
 /** zod schema for `SiteProfile v1`. */
