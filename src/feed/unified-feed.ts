@@ -183,6 +183,11 @@ export class UnifiedFeedImpl implements UnifiedFeed {
         element: el,
         docSeq,
         sourceUrl,
+        extract: {
+          baseUrl,
+          ...(state.descriptor.content && { content: state.descriptor.content }),
+          ...(state.descriptor.permalink && { permalink: state.descriptor.permalink }),
+        },
       });
       this.evaluate(item);
       this.registry.insert(item);
