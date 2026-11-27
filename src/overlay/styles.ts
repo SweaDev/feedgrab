@@ -22,7 +22,7 @@ export const BASE_CSS = `
   background: var(--fd-color-panel-bg); color: var(--fd-color-panel-fg);
   font-family: var(--fd-font-family); font-size: var(--fd-font-size);
   border: 1px solid var(--fd-color-accent); border-radius: 8px; padding: 10px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); color-scheme: var(--fd-color-scheme);
 }
 .fd-panel:empty { display: none; }
 .fd-bar {
@@ -53,6 +53,10 @@ export const BASE_CSS = `
 .fd-row { display: flex; gap: 4px; align-items: center; }
 .fd-feed-row.fd-selected { font-weight: bold; }
 .fd-count { opacity: 0.75; font-size: 0.9em; }
+.fd-type {
+  font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.04em; padding: 0 5px;
+  border: 1px solid var(--fd-color-accent); border-radius: 999px; color: var(--fd-color-accent);
+}
 .fd-error { color: var(--fd-color-excluded); }
 .fd-rules li { display: flex; justify-content: space-between; gap: 4px; }
 `;
