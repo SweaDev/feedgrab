@@ -13,6 +13,7 @@
 #   -h, --help             show this help
 #
 # Nothing personal is stored in this script: identity and keys are asked for or passed as flags.
+# The sibling repo is cloned over SSH (git@github.com:SweaDev/<repo>.git), so pushes use the SSH key.
 set -euo pipefail
 
 NAME="" EMAIL="" KEY="" CLONE="" PLAYWRIGHT=0 YES=0
@@ -81,43 +82,7 @@ else
   ok "installed bun $(bun --version) (add ~/.bun/bin to PATH)"
 fi
 
-# 3. Sibling repo
-if [ -n "$SIBLING" ]; then
-  say "Sibling repo ($SIBLING)"
-  if [ -d "$PARENT/$SIBLING/.git" ]; then
-    ok "found $PARENT/$SIBLING"
-  else
-    if [ -z "$CLONE" ]; then
-      CLONE=$(ask "Clone SweaDev/$SIBLING into $PARENT? (yes/no)" no)
-    fi
-    if [ "$CLONE" = yes ]; then
-      git clone "https://github.com/SweaDev/$SIBLING" "$PARENT/$SIBLING"
-      ok "cloned $PARENT/$SIBLING"
-    else
-      ok "skipped: work that touches $SIBLING needs it at $PARENT/$SIBLING"
-    fi
-  fi
-fi
-
-# 4. Dependencies
-say "Dependencies"
-for dir in "$REPO_DIR" ${SIBLING:+"$PARENT/$SIBLING"}; do
-  [ -f "$dir/package.json" ] || continue
-  if ! (cd "$dir" && bun install --frozen-lockfile >/dev/null 2>&1); then
-    (cd "$dir" && bun install >/dev/null)
-  fi
-  ok "bun install in $dir"
-done
-if [ "$PLAYWRIGHT" = 1 ]; then
-  for dir in "$REPO_DIR" ${SIBLING:+"$PARENT/$SIBLING"}; do
-    if [ "$(basename "$dir")" = feedgrab ] && [ -d "$dir/node_modules/@playwright/test" ]; then
-      (cd "$dir" && bunx playwright install --with-deps chromium firefox)
-      ok "Playwright browsers installed for $dir"
-    fi
-  done
-fi
-
-# 5. Git identity
+# 3. Git identity
 say "Git identity"
 cur_name=$(git config --global user.name || true)
 cur_email=$(git config --global user.email || true)
@@ -130,7 +95,7 @@ fi
 [ "$EMAIL" = "$cur_email" ] || git config --global user.email "$EMAIL"
 ok "$NAME <$EMAIL>"
 
-# 6. SSH signing key
+# 4. SSH signing key
 say "Commit and tag signing"
 cur_key=$(git config --global user.signingkey || true)
 if [ -z "$KEY" ]; then
@@ -168,10 +133,59 @@ else
   set_cfg gpg.ssh.allowedSignersFile "$signers"
   ok "commits and tags are signed with $KEY.pub"
   echo
-  echo "Add this public key on GitHub: Settings > SSH and GPG keys > New SSH key > Key type: Signing key"
-  echo "(it marks commits Verified; pushing needs your normal GitHub access)"
+  echo "Add this public key on GitHub (Settings > SSH and GPG keys > New SSH key) twice:"
+  echo "  Key type: Signing key         -> commits and tags show as Verified"
+  echo "  Key type: Authentication key  -> clone and push over SSH (git@github.com:...)"
+  if [ ! -f "$HOME/.ssh/config" ] || ! grep -q "$KEY" "$HOME/.ssh/config"; then
+    printf 'Host github.com\n  IdentityFile %s\n  IdentitiesOnly yes\n' "$KEY" >> "$HOME/.ssh/config"
+    chmod 600 "$HOME/.ssh/config"
+  fi
   echo
   cat "$KEY.pub"
 fi
+# 5. Sibling repo
+if [ -n "$SIBLING" ]; then
+  say "Sibling repo ($SIBLING)"
+  if [ -d "$PARENT/$SIBLING/.git" ]; then
+    ok "found $PARENT/$SIBLING"
+  else
+    if [ -z "$CLONE" ]; then
+      CLONE=$(ask "Clone SweaDev/$SIBLING into $PARENT? (yes/no)" no)
+    fi
+    if [ "$CLONE" = yes ]; then
+      ssh_url="git@github.com:SweaDev/$SIBLING.git"
+      if GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=accept-new -o BatchMode=yes" \
+        git clone "$ssh_url" "$PARENT/$SIBLING"; then
+        ok "cloned $PARENT/$SIBLING over SSH"
+      else
+        # SSH failed (key not on GitHub yet, or port 22 blocked): clone over HTTPS, push over SSH.
+        git clone "https://github.com/SweaDev/$SIBLING" "$PARENT/$SIBLING"
+        git -C "$PARENT/$SIBLING" remote set-url --push origin "$ssh_url"
+        ok "cloned $PARENT/$SIBLING over HTTPS; pushes go to $ssh_url"
+      fi
+    else
+      ok "skipped: work that touches $SIBLING needs it at $PARENT/$SIBLING"
+    fi
+  fi
+fi
+
+# 6. Dependencies
+say "Dependencies"
+for dir in "$REPO_DIR" ${SIBLING:+"$PARENT/$SIBLING"}; do
+  [ -f "$dir/package.json" ] || continue
+  if ! (cd "$dir" && bun install --frozen-lockfile >/dev/null 2>&1); then
+    (cd "$dir" && bun install >/dev/null)
+  fi
+  ok "bun install in $dir"
+done
+if [ "$PLAYWRIGHT" = 1 ]; then
+  for dir in "$REPO_DIR" ${SIBLING:+"$PARENT/$SIBLING"}; do
+    if [ "$(basename "$dir")" = feedgrab ] && [ -d "$dir/node_modules/@playwright/test" ]; then
+      (cd "$dir" && bunx playwright install --with-deps chromium firefox)
+      ok "Playwright browsers installed for $dir"
+    fi
+  done
+fi
+
 echo
 say "Done"
