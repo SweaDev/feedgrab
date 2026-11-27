@@ -1,7 +1,7 @@
 // Node smoke test: the built ESM entries import and run under Node (no Bun APIs).
 import { readFileSync } from 'node:fs';
-import { createProfile, detectFeeds, openFeed } from '../dist/index.js';
 import { extractArticle } from '../dist/article.js';
+import { createProfile, detectFeeds, openFeed } from '../dist/index.js';
 import { describePage } from '../dist/page.js';
 import { disposeDocument, parseHtml } from '../dist/server.js';
 
@@ -22,7 +22,10 @@ console.log(
 feed.dispose();
 disposeDocument(doc);
 
-const pageHtml = readFileSync(new URL('../tests/fixtures/pages/page-article.html', import.meta.url), 'utf8');
+const pageHtml = readFileSync(
+  new URL('../tests/fixtures/pages/page-article.html', import.meta.url),
+  'utf8',
+);
 const pageDoc = parseHtml(pageHtml, 'https://blog.test/canoe');
 const described = describePage(pageDoc, pageDoc.URL);
 const article = extractArticle(pageDoc);
