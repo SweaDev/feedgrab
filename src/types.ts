@@ -67,6 +67,90 @@ export type FeedDescriptor = {
    * kind `structure`) instead of being checked by the built-in signature-outlier rule.
    */
   structure?: ItemStructure;
+  /**
+   * What the feed holds and, optionally, where each item attribute is read from. Field rules win
+   * over the heuristics of `FeedItem.content()`; unset fields fall back to them.
+   */
+  content?: FeedContent;
+};
+
+/** Kind of content an item holds. `post` covers any text-first entry (article, status, product). */
+export type ContentKind = 'post' | 'image' | 'video' | 'audio' | 'pdf';
+
+/** Content type of a whole feed: one kind, or `mixed` when no kind dominates. */
+export type FeedContentType = ContentKind | 'mixed';
+
+/** An item attribute that a field rule can locate. */
+export type FieldName =
+  | 'title'
+  | 'text'
+  | 'html'
+  | 'author'
+  | 'publishedAt'
+  | 'image'
+  | 'mediaUrl'
+  | 'embedUrl'
+  | 'poster'
+  | 'duration';
+
+/**
+ * Where to read one item attribute: an element relative to the item, and its text, its HTML or
+ * one of its attributes. `source` defaults to `attr` for URL fields (`image`, `mediaUrl`,
+ * `embedUrl`, `poster`, reading `src`, `href`, `poster` or `content`) and to `text` otherwise.
+ */
+export type FieldRule = { selector: Selector; source?: 'text' | 'html' | 'attr'; attr?: string };
+
+/** `FeedDescriptor.content`: the feed's content type and optional per-attribute field rules. */
+export type FeedContent = {
+  type: FeedContentType;
+  fields?: Partial<Record<FieldName, FieldRule>>;
+};
+
+/** An image of an item, with absolute http(s) URLs. */
+export type ImageInfo = {
+  src: string;
+  srcset?: string;
+  alt?: string;
+  width?: number;
+  height?: number;
+};
+
+/**
+ * Playable attributes of a video, audio or PDF item. feedgrab never downloads media; hosts play
+ * `url` (a direct file) or `embedUrl` (a provider player).
+ */
+export type MediaInfo = {
+  kind: 'video' | 'audio' | 'pdf';
+  url?: string;
+  embedUrl?: string;
+  mime?: string;
+  poster?: string;
+  /** Seconds. */
+  duration?: number;
+  width?: number;
+  height?: number;
+  /** Provider name, e.g. `youtube`, when the media belongs to a known provider. */
+  provider?: string;
+  providerId?: string;
+};
+
+/**
+ * Typed content of an item (`FeedItem.content()`). Posts and images carry their content
+ * (`text`, `html` without scripts, styles or event handlers; hosts sanitize before rendering);
+ * video, audio and PDF items carry only playable attributes in `media`.
+ */
+export type ItemContent = {
+  kind: ContentKind;
+  title?: string;
+  text?: string;
+  html?: string;
+  author?: string;
+  /** ISO 8601 when the item states a date. */
+  publishedAt?: string;
+  images: ImageInfo[];
+  media?: MediaInfo;
+  /** How sure the kind is, 0..1 (4 decimals). */
+  confidence: number;
 };
 
 /** One element of an item's structure (`FeedDescriptor.structure`). */
@@ -154,6 +238,8 @@ export interface FeedItem {
   readonly permalink?: string;
   /** Normalized text, as used for LLM classification. */
   text(): string;
+  /** Typed content: kind and attributes, from the descriptor's field rules and heuristics. */
+  content(): ItemContent;
 }
 
 /** A link of an item offered as its permalink by `suggestPermalinks`. */
