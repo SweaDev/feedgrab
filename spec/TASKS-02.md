@@ -64,7 +64,7 @@ Spec: `spec/SPEC-02.md`. Plan: `spec/PLAN-02.md` (cited by section). Notes: `spe
   - Read: PLAN §4
   - Files: `src/feed/sample.ts`, `src/detect/structure.ts`, `tests/unit/feed/sample.test.ts`, `tests/unit/detect/structure.test.ts`
   - Commit: `feat(sample): keep media attributes; export structure coverage (T49)`
-- [ ] **T50 — Overlay: highlighter export, color scheme, type badge**
+- [x] **T50 — Overlay: highlighter export, color scheme, type badge**
   - Depends: T47
   - Read: PLAN §4
   - Files: `src/overlay/{theme,styles,panel,open-overlay,index}.ts`, `src/index.ts`, `tests/unit/overlay/{theme,panel}.test.ts`, `tests/unit/api.test.ts`
