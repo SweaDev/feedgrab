@@ -254,6 +254,13 @@ Package entry points (`package.json` `exports`): `.` → `src/index.ts`, `./over
      to push `main` and the tag, giving them the exact commands.
 
   If a push is refused, stop and ask.
+- **Re-signing history:** `scripts/resign-history.sh` re-signs every commit not signed by the
+  machine's key (trees, messages, authors, committers and dates unchanged), fast-forwards `main`
+  to the rewritten branch and moves every tag (annotated tags keep message, tagger and date). Tags
+  made in a session that pushed only a branch go in `scripts/release-tags.txt` so a later run can
+  create them. Run `--report`, then the default dry run, then `--push`. It pushes all moved tags in
+  one batch (GitHub runs no workflow for a push of more than three tags) and the newest pending tag
+  alone, and `release.yml` only releases the newest tag that has no release yet.
 - **Builds and releases come only from `main`.** The release workflow refuses a tag whose commit
   is not on `main`.
 - **CI runs per tag, not per commit.** Pushing a `vX.Y.Z` tag that matches `package.json`
