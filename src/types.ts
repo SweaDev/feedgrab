@@ -106,6 +106,43 @@ export type FeedContent = {
   fields?: Partial<Record<FieldName, FieldRule>>;
 };
 
+/** A way to read one attribute across a feed's items (`suggestFields`, `fieldRuleFor`). */
+export type FieldCandidate = {
+  field: FieldName;
+  rule: FieldRule;
+  /** Share of the items in which the rule finds a value (4 decimals). */
+  coverage: number;
+  /** The value the rule reads from the reference item. */
+  value: string;
+};
+
+/** One attribute of a feed's items as `describeFeed` reports it. */
+export type FieldSummary = {
+  field: FieldName;
+  /** The reference item's value, when it has one. */
+  value?: string;
+  /** Share of the items that have a value (4 decimals). */
+  coverage: number;
+  /** True when the descriptor has a field rule for it; else the value comes from the heuristics. */
+  ruled: boolean;
+};
+
+/** What `describeFeed` finds: the feed's content type and its attributes. */
+export type FeedDescription = {
+  /** The type items are read as: the descriptor's declared `content.type`, else `detected`. */
+  type: FeedContentType;
+  /** The type the items' own signals give, whatever the descriptor declares. */
+  detected: FeedContentType;
+  /** Share of each kind among the items by their own signals (4 decimals). */
+  kinds: Record<ContentKind, number>;
+  /** Every attribute, in `FieldName` order. */
+  fields: FieldSummary[];
+  /** Number of items read. */
+  items: number;
+  /** Index of the reference item among them (-1 without items). */
+  reference: number;
+};
+
 /** An image of an item, with absolute http(s) URLs. */
 export type ImageInfo = {
   src: string;
