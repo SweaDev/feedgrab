@@ -1,7 +1,7 @@
 import type { ClassifyRequest, DetectRequest } from './contract';
 
 export const DETECT_SYSTEM =
-  'You identify repeating content feeds in web pages. Given candidate containers and DOM skeletons, return only real content feeds (posts, results, products, articles). Prefer the given selectors; you may refine them. Item selectors are evaluated relative to the container and should start with `:scope`. Suggest exclusion selectors only for ads/promotions/injected widgets you can see in the skeleton. Respond with JSON matching the schema.';
+  'You identify repeating content feeds in web pages. Given candidate containers and DOM skeletons, return only real content feeds (posts, results, products, articles). Prefer the given selectors; you may refine them. Item selectors are evaluated relative to the container and should start with `:scope`. Suggest exclusion selectors only for ads/promotions/injected widgets you can see in the skeleton. For each feed also give contentType (post, image, video, audio, pdf, or mixed) and, when you can see them, item-relative CSS selectors in fields for title, author, publishedAt, image, mediaUrl, embedUrl, poster and duration. Respond with JSON matching the schema.';
 
 export const CLASSIFY_SYSTEM =
   'Decide for each item whether it matches ANY of the exclusion criteria. Judge by meaning, not keywords. Return one result per item id with exclude, the index of the matched criterion, and confidence 0..1.';
