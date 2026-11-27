@@ -1,10 +1,24 @@
 export { type RemovalHandle, type RemovalMode, removeItem, removeParts } from './cleanup/remove';
+export {
+  contentField,
+  describeFeed,
+  FIELD_NAMES,
+  fieldRuleFor,
+  suggestFields,
+} from './content/describe';
 export type { MediaProvider, ProviderMatch } from './content/providers';
 export { registerProvider, resolveProvider } from './content/providers';
 export { detectFeeds } from './detect/detect';
 export { detectFromSelector, inspectFromElement } from './detect/inspect';
 export { suggestPermalinkParams, suggestPermalinks } from './detect/permalink';
-export { findReferenceItem, matchStructure, suggestStructure } from './detect/structure';
+export {
+  findReferenceItem,
+  matchStructure,
+  partCoverage,
+  partText,
+  structureCoverage,
+  suggestStructure,
+} from './detect/structure';
 export type { ErrorCode } from './errors';
 export { FeedgrabError } from './errors';
 export type { BuiltinRule } from './exclude/builtin';
