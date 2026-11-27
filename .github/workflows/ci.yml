@@ -1,10 +1,9 @@
 name: CI
 
+# Runs per release tag (release.yml calls it) or by hand, never on every push.
 on:
-  push:
-    branches: ["**"]
-  pull_request:
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   ci:
