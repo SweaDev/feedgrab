@@ -12,7 +12,7 @@ Spec: `spec/SPEC-02.md`. Plan: `spec/PLAN-02.md` (cited by section). Notes: `spe
   - Accept: profiles with and without `content` round-trip through `serializeProfile`/`parseProfile`; invalid field rules are rejected; `bun run check` passes.
   - Commit: `feat(content): content kinds, typed item content and field rules in descriptors (T41)`
 
-- [ ] **T42 — URLs and media providers**
+- [x] **T42 — URLs and media providers**
   - Depends: T41
   - Read: PLAN §2 (`url`, `providers`)
   - Files: `src/content/url.ts`, `src/content/providers.ts`, `tests/unit/content/providers.test.ts`
