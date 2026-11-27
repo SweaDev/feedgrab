@@ -106,6 +106,26 @@ export type FeedContent = {
   fields?: Partial<Record<FieldName, FieldRule>>;
 };
 
+/** What `describePage` finds on an item's own page: its content plus page facts. */
+export type PageDescription = ItemContent & {
+  /** The canonical URL (`link[rel=canonical]`, `og:url`, else the given URL). */
+  url: string;
+  siteName?: string;
+  /** The page's oEmbed endpoint, for hosts that want to ask the provider (feedgrab never fetches). */
+  oembedUrl?: string;
+};
+
+/** The main article of a page (`extractArticle`); `html` is not sanitized. */
+export type Article = {
+  title?: string;
+  byline?: string;
+  siteName?: string;
+  html: string;
+  text: string;
+  excerpt?: string;
+  publishedAt?: string;
+};
+
 /** A way to read one attribute across a feed's items (`suggestFields`, `fieldRuleFor`). */
 export type FieldCandidate = {
   field: FieldName;
