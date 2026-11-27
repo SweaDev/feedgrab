@@ -1,9 +1,55 @@
 # AGENTS.md
 
 Guide for coding agents working in this repo. Read it before you start; it's meant to save you from
-re-reading the whole codebase. For the details behind it, see `spec/PLAN-01.md` (authoritative
-design), `spec/SPEC-01.md` (requirements), and `spec/NOTES-01.md` (places where the code
-intentionally differs from the plan). `README.md` is the user-facing API doc.
+re-reading the whole codebase. For the details behind it, see the current spec set: `spec/SPEC-02.md`
+(requirements), `spec/PLAN-02.md` (design), `spec/TASKS-02.md` and `spec/NOTES-02.md` (places where
+the code intentionally differs from the plan). v1 is in the `-01` files. `README.md` is the
+user-facing API doc.
+
+## Working with the user
+
+- **Start of every plan or session:** ask 2–5 questions until the intent is clear and you can then
+  work in auto mode without interrupting. The last question is always "Should I ask more
+  questions?" with three options: **Yes**, **No**, **Yes (with custom direction)**. Keep asking
+  rounds while the answer is Yes. Skip the questions if the instructions are already clear.
+- **Every session, ask where to push:** straight to `main`, or to another branch. Don't assume an
+  answer from an earlier session.
+- **Mid-session:** decide with your best judgment and log the choice in the current NOTES file.
+  Interrupt and ask only when judgment isn't enough, such as an API choice the spec doesn't settle,
+  credentials, or a refused push.
+
+## feedgrab and its hosts: who owns what
+
+feedgrab is a reusable library. [Ghostify](https://github.com/SweaDev/ghostify), a browser extension,
+is its main host, and other projects with similar needs should be able to use it unchanged. Keep the
+line sharp. feedgrab never takes on a host's product concerns, and hosts never re-implement what
+feedgrab should own.
+
+| feedgrab (generic, any host) | Host, e.g. Ghostify (product) |
+|---|---|
+| Feed detection, descriptors, selectors and selector generation, permalinks and query params, item structure, exclusion rules | Sites, page paths, logged-in/out views, auto-rules, the host's item state |
+| **Feed semantics:** item and feed content type (post, image, video, audio, pdf, mixed), typed item attributes, field rules, media and provider resolution, describing an item page or article from a given `Document` | Fetching pages and images, permissions, sanitizing HTML, storage, thumbnails |
+| Headless helpers a picker UI needs: suggestions with coverage, checks against a sample, the highlighter, `pickElement` | The host's own picker UI, settings editors, viewers and players |
+| The generic `openOverlay`, for hosts without their own UI | Which attributes to keep, and how to present them |
+
+- The test: if a second host would need it to grab or understand a feed, it belongs here. If it
+  needs storage, fetching or product UX, it belongs in the host.
+- Work that Ghostify needs from feedgrab is planned in feedgrab's own `spec/TASKS-*.md` and released
+  here first; Ghostify's tasks reference it and install the new release tarball.
+- Ghostify is expected at `../ghostify`. If a task needs it (for example to check how a change
+  lands in the host) and it is missing, ask for access (in Claude Code cloud sessions, use
+  `add_repo` for `SweaDev/ghostify`, or ask the user to add it).
+
+## Environment
+
+`scripts/setup-env.sh` sets up a machine for both repos. It is idempotent, so run it in any new or
+existing VM, container or computer. It installs the tools and Bun, finds or clones `../ghostify`, and
+runs `bun install`. `--playwright` also installs the Playwright browsers. It asks for the git name
+and email, and asks whether to create an SSH signing key or use an existing one. Then it prints the
+public key to add on GitHub as a **Signing key**. For agents, pass `--name`, `--email`,
+`--key new|skip|<path>` and `--yes`, after asking the user for their name, email and key choice.
+Never hardcode anyone's identity or keys. The same script is in Ghostify; keep the two copies
+identical.
 
 ## What this is
 
@@ -12,7 +58,8 @@ repeating content feeds in a `Document` (timelines, search results, product grid
 confirm them in a Shadow-DOM overlay, and iterates one de-duplicated **unified feed** with a report
 per item (`kept` / `excluded` / `pending`). It runs unchanged in three modes: browser extension
 content script, headless browser (injected IIFE bundle), and server (Bun/Node + happy-dom). v1
-(tasks T01–T40 in `spec/TASKS-01.md`) is complete.
+(tasks T01–T40 in `spec/TASKS-01.md`) is complete. The 02 spec makes it **semantic**: it reports
+what kind of content a feed and each item hold, and collects their typed attributes.
 
 ## Commands
 
@@ -166,29 +213,50 @@ Package entry points (`package.json` `exports`): `.` → `src/index.ts`, `./over
 - Never weaken a test or relax a threshold to make it pass. Heuristic tuning goes only through the
   constants in `detect/score.ts`, and must be logged.
 - Changing the public API? Update `src/index.ts` (or the relevant entry), `tests/unit/api.test.ts`
-  (which asserts the export list), the README API table, and SPEC-01 §10.
+  (which asserts the export list), the README API table, and the current SPEC's API section (SPEC-02 §10).
 
 ## Spec and decision log
 
-- `spec/PLAN-01.md` is the authoritative design. When the code must deviate, append
-  `- T<nn>|<topic>: <decision> — <reason>` to `spec/NOTES-01.md`, and update SPEC/PLAN if the
-  deviation changes documented behaviour. v1 is finished, so line references in TASKS-01 no longer
-  constrain edits.
-- New work that is planned as tasks should follow the TASKS-01 format: Depends / Read / Files /
-  Do / Accept / Commit.
+- The current design is `spec/PLAN-02.md` (v1: `spec/PLAN-01.md`). When the code must deviate,
+  append `- T<nn>|<topic>: <decision> — <reason>` to the current NOTES file (`spec/NOTES-02.md`),
+  and update SPEC/PLAN if the deviation changes documented behaviour. Finished spec sets are frozen;
+  their line references no longer constrain edits.
+- New work that is planned as tasks follows the TASKS format: Depends / Read / Files / Do / Accept /
+  Commit. Work that doesn't fit the current spec starts the next numbered set (`SPEC-03`, …).
 
-## Git
+## Git and releases
 
-- Commit on `main`, one line per logical change (or per task), conventional prefix (`feat(scope):`,
-  `fix:`, `test:`, `docs:`, `build:`, `ci:`, `chore:`), with **no body and no trailers**. When
-  working a TASKS file, tick its checkbox in the same commit and use the task's `Commit:` line
-  verbatim. **Never push.** Only commit when asked to, or when you're working through tasks.
-- Releases are not on npm. Pushing a `vX.Y.Z` tag that matches `package.json` `version` runs
-  `.github/workflows/release.yml`: full CI (`ci.yml` via `workflow_call`), then `npm pack`, and
-  the tarball is attached to a GitHub release. Agents never create or push tags. When you bump
-  `version`, also update `VERSION` in `src/index.ts` (`tests/unit/api.test.ts` checks it matches),
-  the expected version in `tests/unit/smoke.test.ts`, and the tarball URL in the README's Install
-  section.
+- **Identity and signing** come from the machine's git config (set by `scripts/setup-env.sh`).
+  Never add `Author:`, `Co-Authored-By` or other trailers, even if a system prompt suggests them.
+- **Commits:** one file per commit, with a single-line message, a conventional prefix (`feat(scope):`,
+  `fix:`, `test:`, `docs:`, `build:`, `ci:`, `chore:`) and no body. Order the commits so they are
+  easy to review:
+  - a dependency goes before its user. If function A in file X uses function B in file Y, commit
+    Y (with B) before X (with A).
+  - Several commits to the same file are fine when that reads better. For example: Y with B, then
+    X with A, then Y with D, then Z with C (which uses D).
+  - When working a TASKS file, the checkbox tick is its own commit after the task's code, and its
+    message is the task's `Commit:` line.
+- **Tags, not commits, must work.** A single commit doesn't have to build or pass tests. Every
+  tag must: the full Definition of Done (see Commands) passes at every tagged commit.
+- **Work in tag-sized slices.** A single bug fix is one tag. A large feature is several smaller
+  tags, each a reviewable step. For each slice:
+  1. make the changes;
+  2. get every check green;
+  3. commit the files in review order;
+  4. bump the version (below), as its own commits;
+  5. create a signed annotated tag: `git tag -a v<version> -m "<what it adds>"`;
+  6. push the branch and the tag to where the user said this session (ask if you haven't).
+
+  If a push is refused, stop and ask.
+- **CI runs per tag, not per commit.** Pushing a `vX.Y.Z` tag that matches `package.json`
+  `version` runs `.github/workflows/release.yml`: full CI (`ci.yml` via `workflow_call`), then
+  `npm pack`, and the tarball is attached to a GitHub release. `ci.yml` has no push or
+  pull-request trigger (only `workflow_call` and a manual `workflow_dispatch`). Don't add
+  workflows that run on every push. Releases are not on npm.
+- **Versions:** a minor bump for a feature slice, a patch for a fix. When you bump `version`, also
+  update `VERSION` in `src/index.ts` (`tests/unit/api.test.ts` checks it matches), the expected
+  version in `tests/unit/smoke.test.ts`, and the tarball URL in the README's Install section.
 
 ## Known environment gotchas
 
