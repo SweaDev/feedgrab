@@ -45,8 +45,10 @@ test('captureSample keeps two stripped items that still match the descriptor', (
   const html = captureSample(doc, descriptor())!;
   expect(doc.documentElement.outerHTML).toBe(before);
   expect(bytes(html)).toBeLessThanOrEqual(20000);
-  for (const bad of ['alert(1)', '.x{}', '<path', 'cdn.test', 'onclick', 'style=', 'footer'])
+  for (const bad of ['alert(1)', '.x{}', '<path', 'onclick', 'style=', 'footer'])
     expect(html).not.toContain(bad);
+  // Media URLs stay (v0.7), so field rules can be checked against the sample.
+  expect(html).toContain('<img src="https://cdn.test/1.png">');
   expect(html).toContain('data-testid="User"');
   expect(html).toContain('datetime="2026-11-05"');
 
@@ -141,4 +143,31 @@ test('permalinkIgnore: drops those params unless permalinkParams is set; ids mat
     'https://social.test/watch?pp=p1&v=abc',
     'https://social.test/watch?pp=p2&v=abc',
   ]);
+});
+
+test('captureSample keeps http(s) and relative media attributes but not data or blob URLs', () => {
+  const doc = parseHtml(
+    `<html><body><section>${[1, 2]
+      .map(
+        (i) => `<article class="post"><a href="/p/${i}">Post ${i} with a long enough title</a>
+        <video poster="/poster${i}.jpg" src="blob:https://x.test/abc"><source src="https://cdn.test/${i}.mp4" type="video/mp4"></video>
+        <img src="data:image/gif;base64,R0lGOD" srcset="/a${i}.jpg 1x, /b${i}.jpg 2x">
+        <iframe src="https://www.youtube.com/embed/abcDEF123${i}"></iframe></article>`,
+      )
+      .join('')}</section></body></html>`,
+    URL,
+  );
+  const html = captureSample(
+    doc,
+    descriptor({
+      container: { type: 'css', value: 'section' },
+      item: { type: 'css', value: ':scope > article' },
+    }),
+  )!;
+  expect(html).toContain('poster="/poster1.jpg"');
+  expect(html).toContain('<source src="https://cdn.test/1.mp4" type="video/mp4">');
+  expect(html).toContain('srcset="/a1.jpg 1x, /b1.jpg 2x"');
+  expect(html).toContain('src="https://www.youtube.com/embed/abcDEF1231"');
+  expect(html).not.toContain('blob:');
+  expect(html).not.toContain('data:image');
 });
