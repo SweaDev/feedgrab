@@ -76,7 +76,7 @@ Spec: `spec/SPEC-02.md`. Plan: `spec/PLAN-02.md` (cited by section). Notes: `spe
 
 ## Phase O — Item pages (v0.8.0)
 
-- [ ] **T52 — `describePage`**
+- [x] **T52 — `describePage`**
   - Depends: T51
   - Read: PLAN §2 (`page`); NOTES-02 T52
   - Files: `src/types.ts`, `src/content/media.ts`, `src/content/page.ts`, `src/page.ts`, `tests/fixtures/pages/*`, `tests/unit/content/page.test.ts`
