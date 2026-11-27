@@ -17,6 +17,11 @@ const NAMES = [
   'paginated-1',
   'paginated-2',
   'placeholder',
+  'video-grid',
+  'image-gallery',
+  'podcast-list',
+  'pdf-list',
+  'mixed-feed',
 ];
 
 for (const live of [false, true]) {
@@ -28,7 +33,10 @@ for (const live of [false, true]) {
     const it = feed.iterate({ live: false });
     if (name === 'paginated-1')
       feed.ingest(fixtureHtml('paginated-2'), { url: 'https://fixture.test/p2' });
-    for await (const item of it) item.text();
+    for await (const item of it) {
+      item.text();
+      item.content();
+    }
     await new Promise((r) => setTimeout(r, 0));
     feed.dispose();
     expect(domSnapshot(doc)).toBe(before);
