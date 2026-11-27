@@ -53,3 +53,18 @@ export function appendFragment(container: Element, html: string): Element[] {
   }
   return added;
 }
+
+/**
+ * Expected field values of a fixture item: `data-fixture-field="<name>"` elements inside it, with
+ * the value in `data-fixture-value` or else the element's text.
+ */
+export function fixtureFields(item: Element): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const el of [item, ...item.querySelectorAll('[data-fixture-field]')]) {
+    const name = el.getAttribute('data-fixture-field');
+    if (!name) continue;
+    out[name] =
+      el.getAttribute('data-fixture-value') ?? (el.textContent ?? '').replace(/\s+/g, ' ').trim();
+  }
+  return out;
+}
