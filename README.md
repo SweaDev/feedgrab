@@ -25,8 +25,8 @@ Feedgrab is not published to npm yet. Each [GitHub release](https://github.com/S
 has a prebuilt package tarball attached. Install it by URL with any package manager:
 
 ```sh
-bun add https://github.com/SweaDev/feedgrab/releases/download/v0.6.0/feedgrab-0.6.0.tgz
-# or: npm i https://github.com/SweaDev/feedgrab/releases/download/v0.6.0/feedgrab-0.6.0.tgz
+bun add https://github.com/SweaDev/feedgrab/releases/download/v0.7.0/feedgrab-0.7.0.tgz
+# or: npm i https://github.com/SweaDev/feedgrab/releases/download/v0.7.0/feedgrab-0.7.0.tgz
 ```
 
 To upgrade, install the tarball URL of a newer release. Installing straight from the repository
@@ -221,6 +221,11 @@ disposeDocument(doc);
 | `checkDescriptor(doc, descriptor, { baseUrl?, builtinExclusions? })` | core | Dry run on a page or saved sample: `{ items, withLink, matchingStructure, kinds, type }`. Read-only. |
 | `generateSelector(el, { root? })` | core | Robust CSS selector for any element: unique in the document, or relative to `root` (`:scope …`, first match is `el`) for permalinks, parts and field rules. |
 | `resolveProvider(url)` / `registerProvider(provider)` | core | Media provider, id, kind and embed URL of a page/share/embed link, or the kind and mime type of a direct media file; register more providers (returns an unregister function). |
+| `describeFeed(doc, descriptor, { baseUrl?, reference? })` | core | What a feed holds: `{ type, detected, kinds, fields, items, reference }`; per attribute the reference item's `value`, its `coverage` across items and whether a field rule set it. |
+| `suggestFields(items, { baseUrl, reference?, max? })` | core | Candidate field rules per attribute (`{ field, rule, coverage, value }`), ranked by coverage, for a picker. |
+| `fieldRuleFor(field, el, item, items, baseUrl)` | core | Turns an element the user picked in `item` into the field rule that works across `items` (or null when it can't hold the field). |
+| `contentField(content, field)` / `FIELD_NAMES` | core | One attribute of `item.content()` as a string; every attribute in report order. |
+| `structureCoverage(items, structure?)` / `partCoverage(items, part)` / `partText(item, part)` | core | How many items have every required part, or one part; a part's short text. |
 | `validateSelector(doc, sel)` | core | `{ valid, count, error? }`; never throws. |
 | `matchSelector(doc, sel, { root? })` | core | Matched elements, plus `boxes` when the page has layout. |
 | `openFeed(doc, profile, opts?)` | core | Open the `UnifiedFeed`: `items()`, `iterate()`, `for await`, `on/off/once`, `ingest()`, `dispose({ restore? })`. |
@@ -233,6 +238,8 @@ disposeDocument(doc);
 | `BUILTIN_RULES`, `CURRENT_PROFILE_VERSION`, `FeedgrabError` | core | Constants and the error class (`code`, `details`). |
 | `openOverlay(doc, proposals, opts?)` | overlay | Confirm/edit UI with a draggable, collapsible panel (`title`, `position`, `onMove`); resolves with a `SiteProfile`. |
 | `pickElement(doc, { filter?, signal? })` | overlay | Let the user click an element. |
+| `createHighlighter(doc, layer)` | overlay | Outline page elements from a host's own shadow-root layer (`set`, `refresh`, `destroy`), without touching them. |
+| `DEFAULT_THEME` / `DARK_THEME` / `themeToCss(theme)` | overlay | Light and dark overlay themes, and the `--fd-*` CSS of a theme. |
 | `parseHtml(html, url?)` / `disposeDocument(doc)` | server | Parse HTML with happy-dom (no scripts, no resource loading). |
 | `handleLlmRequest(req, model, opts?)` | llm | Host-side handler for proxied requests. |
 | `createModel(config, providers)` / `createModelFromEnv(providers, env?)` | llm | Build a `LanguageModel` from config (providers injected). |
@@ -271,6 +278,11 @@ openOverlay(document, proposals, {
   customCss: '.fd-panel { width: 400px; }',
 });
 ```
+
+`colorScheme` is `auto` by default: the panel and outlines follow the page's
+`prefers-color-scheme`, using `DARK_THEME`'s colors in dark mode (colors you set win in both).
+Pass `'light'` or `'dark'` to fix it. Each feed row shows the feed's content type (posts, videos,
+mixed, …).
 
 The theme becomes `--fd-*` custom properties on the shadow root's `:host`. The overlay lives in a
 single `<div data-feedgrab-overlay>` with an open shadow root, draws outlines over the page,
