@@ -9,6 +9,8 @@ type Expected = {
     itemCount: number;
     excluded: { builtin: number; llm: number };
     parts: number;
+    /** Content type of the feed; every item then has `data-fixture-kind`. */
+    type?: string;
   }[];
 };
 
@@ -40,6 +42,16 @@ describe('fixture catalog', () => {
         expect(own('[data-fixture-excluded="builtin"]').length).toBe(f.excluded.builtin);
         expect(own('[data-fixture-excluded="llm"]').length).toBe(f.excluded.llm);
         expect(own('[data-fixture-part]').length).toBe(f.parts);
+        if (f.type) {
+          const kinds = own('[data-fixture-item]').map((el) =>
+            el.getAttribute('data-fixture-kind'),
+          );
+          expect(kinds.every(Boolean)).toBe(true);
+          const distinct = new Set(kinds);
+          expect(f.type === 'mixed' ? distinct.size > 1 : [...distinct]).toEqual(
+            f.type === 'mixed' ? true : [f.type],
+          );
+        }
       }
     });
   }
