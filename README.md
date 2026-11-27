@@ -25,8 +25,8 @@ Feedgrab is not published to npm yet. Each [GitHub release](https://github.com/S
 has a prebuilt package tarball attached. Install it by URL with any package manager:
 
 ```sh
-bun add https://github.com/SweaDev/feedgrab/releases/download/v0.7.0/feedgrab-0.7.0.tgz
-# or: npm i https://github.com/SweaDev/feedgrab/releases/download/v0.7.0/feedgrab-0.7.0.tgz
+bun add https://github.com/SweaDev/feedgrab/releases/download/v0.8.0/feedgrab-0.8.0.tgz
+# or: npm i https://github.com/SweaDev/feedgrab/releases/download/v0.8.0/feedgrab-0.8.0.tgz
 ```
 
 To upgrade, install the tarball URL of a newer release. Installing straight from the repository
@@ -43,16 +43,19 @@ Optional peer dependencies, install only what you use:
 | OpenAI | `@ai-sdk/openai` |
 | OpenRouter | `@openrouter/ai-sdk-provider` |
 | Gemini | `@ai-sdk/google` |
+| Article extraction (`feedgrab/article`) | `@mozilla/readability` |
 
 ### Entry points
 
 | Import | Contents |
 |---|---|
 | `feedgrab` | Core: detection, profiles, unified feed, removal helpers, `createLlmProxy` |
-| `feedgrab/overlay` | `openOverlay`, `pickElement`, `DEFAULT_THEME`, `themeToCss` |
+| `feedgrab/overlay` | `openOverlay`, `pickElement`, `createHighlighter`, `DEFAULT_THEME`, `DARK_THEME`, `themeToCss` |
 | `feedgrab/server` | `parseHtml`, `disposeDocument` (happy-dom) |
 | `feedgrab/llm` | `handleLlmRequest`, `createModel`, `createModelFromEnv`, `readEnvConfig` |
 | `feedgrab/llm/providers` | `allProviders` (statically imports the four provider packages) |
+| `feedgrab/page` | `describePage`: an item's own page (fetched by you) as typed content |
+| `feedgrab/article` | `extractArticle`: the page's main article (needs `@mozilla/readability`) |
 | `feedgrab/browser` | Prebuilt IIFE exposing a `Feedgrab` global (core + overlay) |
 
 ## Quick start
@@ -240,6 +243,8 @@ disposeDocument(doc);
 | `pickElement(doc, { filter?, signal? })` | overlay | Let the user click an element. |
 | `createHighlighter(doc, layer)` | overlay | Outline page elements from a host's own shadow-root layer (`set`, `refresh`, `destroy`), without touching them. |
 | `DEFAULT_THEME` / `DARK_THEME` / `themeToCss(theme)` | overlay | Light and dark overlay themes, and the `--fd-*` CSS of a theme. |
+| `describePage(doc, url)` | page | An item's own page as `ItemContent` plus `url` (canonical), `siteName` and `oembedUrl`: kind, title, author, date, text, images and playable media from JSON-LD, Open Graph/Twitter cards, page `video`/`audio`/PDF embeds and known providers. Never fetches. |
+| `extractArticle(doc)` | article | The main article (`{ title, byline, siteName, html, text, excerpt, publishedAt }`) via Readability on a copy, or null. `html` is not sanitized. |
 | `parseHtml(html, url?)` / `disposeDocument(doc)` | server | Parse HTML with happy-dom (no scripts, no resource loading). |
 | `handleLlmRequest(req, model, opts?)` | llm | Host-side handler for proxied requests. |
 | `createModel(config, providers)` / `createModelFromEnv(providers, env?)` | llm | Build a `LanguageModel` from config (providers injected). |
