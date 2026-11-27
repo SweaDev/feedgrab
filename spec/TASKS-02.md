@@ -40,7 +40,7 @@ Spec: `spec/SPEC-02.md`. Plan: `spec/PLAN-02.md` (cited by section). Notes: `spe
   - Accept: relative selectors find the element first in its root; `checkDescriptor` reports items, link hits, structure matches and the content type without mutating the page.
   - Commit: `feat: export generateSelector and checkDescriptor for host picker UIs (T45)`
 
-- [ ] **T46 — Docs and version 0.6.0**
+- [x] **T46 — Docs and version 0.6.0**
   - Depends: T41–T45
   - Files: `README.md`, `package.json`, `src/index.ts`, `tests/unit/smoke.test.ts`
   - Accept: full Definition of Done; tag `v0.6.0`.
