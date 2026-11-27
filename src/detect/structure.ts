@@ -8,6 +8,7 @@ import type {
   StructureCandidate,
   StructureMatch,
   StructureOptions,
+  StructurePart,
 } from '../types';
 
 /** Elements of an item that can be parts of its structure. */
@@ -50,7 +51,7 @@ function label(el: Element): string {
 }
 
 /** Ways to describe part `el` of `root`, most specific first; the last one is positional. */
-function selectorCandidates(root: Element, el: Element): string[] {
+export function selectorCandidates(root: Element, el: Element): string[] {
   const tag = el.localName;
   const out: string[] = [];
   for (const attr of ATTRS) {
@@ -164,4 +165,24 @@ export function findReferenceItem(items: Element[], structure: ItemStructure): n
     if (m.ok && m.optional > bestOptional) [best, bestOptional] = [i, m.optional];
   });
   return best;
+}
+
+/** How many of `items` have every required part of `structure` (all of them without one). */
+export function structureCoverage(items: Element[], structure?: ItemStructure): number {
+  if (!structure?.parts.some((p) => p.required)) return items.length;
+  return items.filter((el) => matchStructure(el, structure).ok).length;
+}
+
+/** How many of `items` have `part`. */
+export function partCoverage(items: Element[], part: Pick<StructurePart, 'selector'>): number {
+  return items.filter((el) => has(el, part.selector)).length;
+}
+
+/** Short text of `part` in `item` (its text, `alt` or `aria-label`), or '' when it has none. */
+export function partText(item: Element, part: Pick<StructurePart, 'selector'>): string {
+  const el = first(item, part.selector);
+  if (!el) return '';
+  const text =
+    normalizeText(el, 500) || el.getAttribute('alt') || el.getAttribute('aria-label') || '';
+  return text.length > MAX_TEXT ? `${text.slice(0, MAX_TEXT)}…` : text;
 }
