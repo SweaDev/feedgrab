@@ -23,3 +23,5 @@ append with `appendFragment`. `paginated-2.html` repeats exactly one permalink f
 (`/item/8`), so ingesting both pages yields 15 unique items.
 
 `tests/unit/fixtures.test.ts` keeps the attributes and the JSON files consistent.
+
+`pages/*.html` are single item pages (a video page, an article) for `describePage` and `extractArticle`. They carry JSON-LD data blocks, have no `.expected.json`, and are not part of the feed catalog.
