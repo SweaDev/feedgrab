@@ -46,7 +46,9 @@ feedgrab should own.
 existing VM, container or computer. It installs the tools and Bun, finds or clones `../ghostify`, and
 runs `bun install`. `--playwright` also installs the Playwright browsers. It asks for the git name
 and email, and asks whether to create an SSH signing key or use an existing one. Then it prints the
-public key to add on GitHub as a **Signing key**. For agents, pass `--name`, `--email`,
+public key to add on GitHub as both a **Signing key** (Verified commits and tags) and an
+**Authentication key** (push over SSH). It clones the sibling repo over SSH
+(`git@github.com:SweaDev/<repo>.git`); HTTPS remotes can't push with that key. For agents, pass `--name`, `--email`,
 `--key new|skip|<path>` and `--yes`, after asking the user for their name, email and key choice.
 Never hardcode anyone's identity or keys. The same script is in Ghostify; keep the two copies
 identical.
@@ -213,7 +215,7 @@ Package entry points (`package.json` `exports`): `.` → `src/index.ts`, `./over
 - Never weaken a test or relax a threshold to make it pass. Heuristic tuning goes only through the
   constants in `detect/score.ts`, and must be logged.
 - Changing the public API? Update `src/index.ts` (or the relevant entry), `tests/unit/api.test.ts`
-  (which asserts the export list), the README API table, and the current SPEC's API section (SPEC-02 §10).
+  (which asserts the export list), the README API table, and the Public API section of the current plan (`spec/PLAN-02.md`).
 
 ## Spec and decision log
 
